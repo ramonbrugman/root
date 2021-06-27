@@ -4,6 +4,7 @@
 /// This macro generates a small V7 TH2D, fills it with random values and
 /// draw it in a V7 canvas, using configured web browser
 ///
+/// \macro_image (rcanvas_js)
 /// \macro_code
 ///
 /// \date 2020-03-04
@@ -45,10 +46,10 @@ void draw_rh2_colz()
    // Create a canvas to be displayed.
    auto canvas = RCanvas::Create("Canvas Title");
 
-   auto frame = canvas->GetOrCreateFrame();
+   auto frame = canvas->AddFrame();
 
    // should we made special style for frame with palette?
-   frame->Margins().SetRight(0.2_normal);
+   frame->AttrMargins().SetRight(0.2_normal);
 
    frame->SetGridX(false).SetGridY(false);
 

@@ -21,7 +21,6 @@
 #include "RooSetProxy.h"
 #include "RooAICRegistry.h"
 #include "RooNormSetCache.h"
-#include "RooNameSet.h"
 #include "RooObjCacheManager.h"
 #include "RooNameReg.h"
 
@@ -60,12 +59,9 @@ public:
     // Return extended mode capabilities
     return ((_haveLastCoef&&!_recursive) || _allExtendable) ? MustBeExtended : CanNotBeExtended; 
   }
+  /// Return expected number of events for extended likelihood calculation, which
+  /// is the sum of all coefficients.
   virtual Double_t expectedEvents(const RooArgSet* nset) const ;
-  virtual Double_t expectedEvents(const RooArgSet& nset) const { 
-    // Return expected number of events for extended likelihood calculation
-    // which is the sum of all coefficients
-    return expectedEvents(&nset) ; 
-  }
 
   const RooArgList& pdfList() const { 
     // Return list of component p.d.fs
@@ -82,6 +78,8 @@ public:
   const RooArgSet& getCoefNormalization() const { return _refCoefNorm ; }
   const char* getCoefRange() const { return _refCoefRangeName?RooNameReg::str(_refCoefRangeName):"" ; }
 
+  virtual Double_t getValV(const RooArgSet *set = 0) const;
+  
   virtual void resetErrorCounters(Int_t resetValue=10) ;
 
   virtual std::list<Double_t>* plotSamplingHint(RooAbsRealLValue& obs, Double_t xlo, Double_t xhi) const ; 

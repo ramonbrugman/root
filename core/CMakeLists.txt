@@ -178,10 +178,14 @@ endif()
 # Darwin's complex.h does not implement C11's __STDC_NO_COMPLEX__, use the
 # header guard instead. This prevents inclusion of complex.h in Darwin.pcm.
 # GCC <=5 has _COMPLEX_H but none of the others.
+# __CLANG_STDATOMIC_H prevents inclusion of stdatomic in our Darwin.pcm: its
+# macros cause conflics with boost.
 target_compile_definitions(Core PRIVATE
   __STDC_NO_COMPLEX__
   __COMPLEX_H__
   _COMPLEX_H
+
+  __CLANG_STDATOMIC_H
  )
 
 #while basic libs do not depend on Core, we have to add includes directly
@@ -211,7 +215,7 @@ endif()
 if(ROOT_ARCHITECTURE MATCHES macosx)
   target_include_directories(Core PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/core/unix/inc> $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/core/macosx/inc>)
   target_include_directories(BaseTROOT PRIVATE ${CMAKE_SOURCE_DIR}/core/unix/inc ${CMAKE_SOURCE_DIR}/core/macosx/inc)
-elseif(ROOT_ARCHITECTURE MATCHES win32)
+elseif(ROOT_ARCHITECTURE MATCHES win32 OR ROOT_ARCHITECTURE MATCHES win64)
   target_include_directories(Core PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/core/winnt/inc>)
   target_include_directories(BaseTROOT PRIVATE ${CMAKE_SOURCE_DIR}/core/winnt/inc)
 else()

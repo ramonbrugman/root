@@ -131,6 +131,7 @@
 #pragma link C++ class RooInt+ ;
 #pragma link C++ class RooInvTransform+ ;
 #pragma link C++ class RooLinearVar+ ;
+#pragma link C++ class RooLinearCombination+ ;
 #pragma link C++ class RooLinkedListElem+ ;
 #pragma link C++ class RooLinkedList- ;
 #pragma link C++ class RooLinTransBinning+ ;
@@ -165,6 +166,7 @@
 #pragma read sourceClass="RooProduct" targetClass="RooProduct" version="[1]" source="RooSetProxy _compCSet" target="_compCSet" code="{ _compCSet.add(onfile._compCSet) ; }"
 #pragma link C++ class RooPullVar+ ;
 #pragma link C++ class RooQuasiRandomGenerator+ ;
+#pragma link C++ class RooRatio+ ;
 #pragma link C++ class RooRandom+ ;
 #pragma link off class RooErrorHandler+ ;
  
@@ -194,6 +196,8 @@
 #pragma read sourceClass="RooCategoryProxy" targetClass="RooTemplateProxy<RooMultiCategory>";
 #pragma link C++ class RooTemplateProxy<RooAbsCategoryLValue>+;
 #pragma read sourceClass="RooCategoryProxy" targetClass="RooTemplateProxy<RooAbsCategoryLValue>";
+#pragma link C++ class RooTemplateProxy<RooHistFunc>+;
+#pragma link C++ class RooTemplateProxy<const RooHistFunc>+;
 #pragma link C++ class RooRealVar- ;
 #pragma link C++ class RooRealVarSharedProperties+ ;
 #pragma read sourceClass="RooRealVarSharedProperties" targetClass="RooRealVarSharedProperties" version="[1]" \
@@ -229,6 +233,7 @@
          while( (te = (RooThreshEntry*)iter->Next()) ) { \
            _threshList.emplace_back(te->_thresh, te->_cat.getVal()); \
          }\
+         delete iter;\
          }";
 #pragma read sourceClass="RooThresholdCategory" targetClass="RooThresholdCategory" version="[2]" \
   source="RooCatType* _defCat; std::vector<std::pair<double,RooCatType>> _threshList" target="_defIndex,_threshList" \
@@ -353,4 +358,5 @@
 #pragma link C++ options=nomap class std::map<string,TH1*>+ ;
 #pragma link off class RooErrorHandler+ ;
 #endif 
-#pragma link C++ class RooBinSamplingPdf+; 
+#pragma link C++ class RooBinSamplingPdf+;
+#pragma link C++ class RooBinWidthFunction+;

@@ -224,10 +224,12 @@ JSROOT.define(['rawinflate'], () => {
                   return new Promise((resolveFunc, rejectFunc) => {
 
                      ZstdCodec.run(zstd => {
-                        const simple = new zstd.Simple();
-                        // streaming = new zstd.Streaming();
+                        // const simple = new zstd.Simple();
+                        const streaming = new zstd.Streaming();
 
-                        const data2 = simple.decompress(uint8arr);
+                        // const data2 = simple.decompress(uint8arr);
+                        const data2 = streaming.decompress(uint8arr);
+
                         // console.log(`tgtsize ${tgtsize} zstd size ${data2.length} offset ${data2.byteOffset} rawlen ${data2.buffer.byteLength}`);
 
                         const reslen = data2.length;
@@ -1354,10 +1356,8 @@ JSROOT.define(['rawinflate'], () => {
             if ((typ === jsrio.kBits) && (kind === jsrio.kUInt)) continue;
             if ((typ === jsrio.kCounter) && (kind === jsrio.kInt)) continue;
 
-            if (typname && typ && (this.fBasicTypes[typname] !== typ)) {
+            if (typname && typ && (this.fBasicTypes[typname] !== typ))
                this.fBasicTypes[typname] = typ;
-               if (!JSROOT.batch_mode) console.log('Extract basic data type', typ, typname);
-            }
          }
       }
    }
@@ -1561,8 +1561,13 @@ JSROOT.define(['rawinflate'], () => {
          return null;
       }
 
-      // for each entry in streamer info produce member function
+      // special handling for TStyle which has duplicated member name fLineStyle
+      if ((s_i.fName == "TStyle") && s_i.fElements)
+         s_i.fElements.arr.forEach(elem => {
+            if (elem.fName == "fLineStyle") elem.fName = "fLineStyles"; // like in ROOT JSON now
+         });
 
+      // for each entry in streamer info produce member function
       if (s_i.fElements)
          for (let j = 0; j < s_i.fElements.arr.length; ++j)
             streamer.push(jsrio.createMember(s_i.fElements.arr[j], this));

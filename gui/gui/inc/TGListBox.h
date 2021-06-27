@@ -20,21 +20,13 @@
 class TGListBox;
 class TList;
 
-/** \class TGLBEntry
-    \ingroup guiwidgets
-
-Basic listbox entries. Listbox entries are created by a TGListBox
-and not by the user.
-
-*/
-
 
 class TGLBEntry : public TGFrame {
 
 protected:
-   Int_t      fEntryId;          // message id of listbox entry
-   Pixel_t    fBkcolor;          // entry background color
-   Bool_t     fActive;           // true if entry is active
+   Int_t      fEntryId;          ///< message id of listbox entry
+   Pixel_t    fBkcolor;          ///< entry background color
+   Bool_t     fActive;           ///< true if entry is active
 
    virtual void DoRedraw() { }
 
@@ -53,23 +45,15 @@ public:
 };
 
 
-/** \class TGTextLBEntry
-    \ingroup guiwidgets
-
-Text string listbox entries.
-
-*/
-
-
 class TGTextLBEntry : public TGLBEntry {
 
 protected:
-   TGString     *fText;           // entry text string
-   UInt_t        fTWidth;         // text width
-   UInt_t        fTHeight;        // text height
-   Bool_t        fTextChanged;    // true if text has been changed
-   GContext_t    fNormGC;         // text drawing graphics context
-   FontStruct_t  fFontStruct;     // font used to draw string
+   TGString     *fText;           ///< entry text string
+   UInt_t        fTWidth;         ///< text width
+   UInt_t        fTHeight;        ///< text height
+   Bool_t        fTextChanged;    ///< true if text has been changed
+   GContext_t    fNormGC;         ///< text drawing graphics context
+   FontStruct_t  fFontStruct;     ///< font used to draw string
 
    virtual void DoRedraw();
 
@@ -110,15 +94,6 @@ public:
 };
 
 
-/** \class TGLineLBEntry
-    \ingroup guiwidgets
-
-Line style & width listbox entry.
-Line example and width number
-
-*/
-
-
 class TGLineLBEntry : public TGTextLBEntry {
 
 private:
@@ -126,10 +101,10 @@ private:
    TGLineLBEntry operator=(const TGLineLBEntry&) = delete;
 
 protected:
-   UInt_t      fLineWidth;       // line width
-   Style_t     fLineStyle;       // line style
-   UInt_t      fLineLength;      // line length
-   TGGC       *fLineGC;          // line graphics context
+   UInt_t      fLineWidth;       ///< line width
+   Style_t     fLineStyle;       ///< line style
+   UInt_t      fLineLength;      ///< line length
+   TGGC       *fLineGC;          ///< line graphics context
 
    virtual void DoRedraw();
 
@@ -152,13 +127,6 @@ public:
 
    ClassDef(TGLineLBEntry, 0)  // Line width listbox entry
 };
-
-/** \class TGIconLBEntry
-    \ingroup guiwidgets
-
-Icon + text listbox entry.
-
-*/
 
 
 class TGIconLBEntry : public TGTextLBEntry {
@@ -191,14 +159,6 @@ public:
    ClassDef(TGIconLBEntry, 0)  // Icon + text listbox entry
 };
 
-/** \class TGLBContainer
-    \ingroup guiwidgets
-
-A Composite frame that contains a list of TGLBEnties.
-A TGLBContainer is created by the TGListBox and not by the user.
-
-*/
-
 
 class TGLBContainer : public TGContainer {
 
@@ -209,11 +169,11 @@ private:
    TGLBContainer operator=(const TGLBContainer&) = delete;
 
 protected:
-   TGLBEntry      *fLastActive;    // last active listbox entry in single selection listbox
-   TGListBox      *fListBox;       // list box which contains this container
-   Bool_t          fMultiSelect;   // true if multi selection is switched on
-   Int_t           fChangeStatus;  // defines the changes (select or unselect) while the mouse
-                                   // moves over a multi selectable list box
+   TGLBEntry      *fLastActive;    ///< last active listbox entry in single selection listbox
+   TGListBox      *fListBox;       ///< list box which contains this container
+   Bool_t          fMultiSelect;   ///< true if multi selection is switched on
+   Int_t           fChangeStatus;  ///< defines the changes (select or unselect) while the mouse
+                                   ///< moves over a multi selectable list box
 
    virtual void OnAutoScroll();
    virtual void DoRedraw();
@@ -258,14 +218,6 @@ public:
 };
 
 
-/** \class TGListBox
-    \ingroup guiwidgets
-
-A TGListBox widget.
-
-*/
-
-
 class TGListBox : public TGCompositeFrame, public TGWidget {
 
 private:
@@ -273,11 +225,11 @@ private:
    TGListBox operator=(const TGListBox&) = delete;
 
 protected:
-   UInt_t           fItemVsize;       // maximum height of single entry
-   Bool_t           fIntegralHeight;  // true if height should be multiple of fItemVsize
-   TGLBContainer   *fLbc;             // listbox container
-   TGViewPort      *fVport;           // listbox viewport (see TGCanvas.h)
-   TGVScrollBar    *fVScrollbar;      // vertical scrollbar
+   UInt_t           fItemVsize;       ///< maximum height of single entry
+   Bool_t           fIntegralHeight;  ///< true if height should be multiple of fItemVsize
+   TGLBContainer   *fLbc;             ///< listbox container
+   TGViewPort      *fVport;           ///< listbox viewport (see TGCanvas.h)
+   TGVScrollBar    *fVScrollbar;      ///< vertical scrollbar
 
    void SetContainer(TGFrame *f) { fVport->SetContainer(f); }
 

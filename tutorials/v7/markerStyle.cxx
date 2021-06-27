@@ -1,6 +1,9 @@
 /// \file
 /// \ingroup tutorial_v7
 ///
+/// This ROOT 7 example shows the various marker style.
+///
+/// \macro_image (rcanvas_js)
 /// \macro_code
 ///
 /// \date 2018-03-18
@@ -17,7 +20,7 @@ void markerStyle()
 {
    using namespace ROOT::Experimental;
 
-   auto canvas = RCanvas::Create("Canvas Title");
+   auto canvas = RCanvas::Create("RMarker styles");
    double num = 0.3;
 
    double x = 0;

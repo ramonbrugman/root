@@ -292,10 +292,14 @@
 #   if defined(__i386__)
 #      define R__BYTESWAP
 #   endif
-#   if defined(__arm__) || defined (__arm64__)
+#   if defined(__x86_64__)
+#      define R__BYTESWAP
+#      define R__B64      /* enable when 64 bit machine */
+#   endif
+#   if defined(__arm__)
 #      define R__BYTESWAP
 #   endif
-#   if defined(__x86_64__)
+#   if defined (__arm64__)
 #      define R__BYTESWAP
 #      define R__B64      /* enable when 64 bit machine */
 #   endif
@@ -384,6 +388,14 @@
 #   define R__ACCESS_IN_SYMBOL
 //#   define __attribute__(X)
 //#   define thread_local static __declspec(thread)
+#endif
+#ifdef _WIN64
+#   define R__WIN64
+#   ifndef WIN64
+#      define WIN64
+#   endif
+#   define __x86_64__ 1
+#   define R__B64      /* enable when 64 bit machine */
 #endif
 
 #ifdef __SC__
@@ -519,9 +531,9 @@
 /*---- misc ------------------------------------------------------------------*/
 
 #ifdef R__GNU
-#   define SafeDelete(p) { if (p) { delete p; p = 0; } }
+#   define SafeDelete(p) { if (p) { delete p; p = nullptr; } }
 #else
-#   define SafeDelete(p) { delete p; p = 0; }
+#   define SafeDelete(p) { delete p; p = nullptr; }
 #endif
 
 #ifdef __FAST_MATH__

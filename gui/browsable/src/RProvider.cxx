@@ -176,7 +176,7 @@ const RProvider::StructClass &RProvider::GetClassEntry(const ClassArg &cl)
          for (auto &elem : bmap)
             if (cl.name.compare(0, elem.first.length(), elem.first) == 0)
                return elem.second;
-      } else {
+      } else if (cl.cl) {
          auto bases = const_cast<TClass *>(cl.cl)->GetListOfBases();
          const TClass *basecl = bases && (bases->GetSize() > 0) ? dynamic_cast<TBaseClass *>(bases->First())->GetClassPointer() : nullptr;
          if (basecl) return RProvider::GetClassEntry(basecl);
@@ -417,6 +417,7 @@ public:
       RegisterClass("ROOT::Experimental::RH1D", "sap-icon://bar-chart", "", "", "libROOTHistDrawProvider");
       RegisterClass("ROOT::Experimental::RH2D", "sap-icon://pixelate", "", "", "libROOTHistDrawProvider");
       RegisterClass("ROOT::Experimental::RH3D", "sap-icon://product", "", "", "libROOTHistDrawProvider");
+      RegisterClass("ROOT::Experimental::RCanvas", "sap-icon://business-objects-experience", "", "", "libROOTHistDrawProvider");
       RegisterClass("ROOT::Experimental::RNTuple", "sap-icon://table-chart", "libROOTNTupleBrowseProvider", "libROOTNTupleDraw6Provider", "libROOTNTupleDraw7Provider");
    }
 

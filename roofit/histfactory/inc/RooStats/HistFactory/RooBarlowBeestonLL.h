@@ -41,7 +41,7 @@ public:
     BarlowCache() : hasStatUncert(false), gamma(NULL), 
 		    observables(NULL), bin_center(NULL), 
 		    tau(NULL), nom_pois_mean(NULL),
-		    sumPdf(NULL),  nData(-1) {}
+		    sumPdf(NULL),  nData(-1), binVolume(0) {}
     bool hasStatUncert;
     RooRealVar* gamma;
     RooArgSet* observables;
@@ -68,7 +68,7 @@ public:
 
   void initializeBarlowCache();
 
-  RooArgSet* getParameters(const RooArgSet* depList, Bool_t stripDisconnected=kTRUE) const;
+  bool getParameters(const RooArgSet* depList, RooArgSet& outputSet, bool stripDisconnected=true) const;
 
   // void setAlwaysStartFromMin(Bool_t flag) { _startFromMin = flag ; }
   // Bool_t alwaysStartFromMin() const { return _startFromMin ; }

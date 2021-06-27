@@ -793,6 +793,30 @@ std::pair<const RooArgSet*, RooAddPdf::CacheElem*> RooAddPdf::getNormAndCache(co
   return {nset, cache};
 }
 
+////////////////////////////////////////////////////////////////////////////////
+/// Re-implementation of RooAbsPdf::getValV to deal with the un-normalized case.
+/// A RooAddPdf needs to have a normalization set defined, otherwise its coefficient will not
+/// be uniquely defined. Its shape depends on the normalization provided.
+/// Un-normalized calls to RooAddPdf can happen in Roofit,  when printing the pdf's or when
+/// computing integrals. In these case, if the pdf has a normalization set previously defined 
+/// (i.e. stored as a datamember in _normSet) it should used it by default when the pdf is evaluated 
+/// without passing a normalizations set (in pdf->getVal(nullptr) )
+/// In the case of no pre-defined normalization set exists, a warning will be produced, since the obtained value 
+/// will be arbitrary. 
+/// Note that to avoid unnecessary warning messages,  when calling RooAbsPdf::printValue or RooAbsPdf::graphVizTree, the 
+/// printing of the warning messages for the RooFit::Eval topic is explicitly disabled
+
+Double_t RooAddPdf::getValV(const RooArgSet *nset) const
+{
+   // special handling in case when an empty set is passed
+   // use saved normalization set when it is available
+   //when nset is a nullptr the subsequent call to RooAddPdf::evaluate called from
+   // RooAbsPdf::getValV will result in a warning message since in this case interpretation of coefficient is arbitrary
+   if (nset == nullptr) {
+      nset = _normSet;
+    }
+   return RooAbsPdf::getValV(nset);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Calculate and return the current value
@@ -802,11 +826,15 @@ Double_t RooAddPdf::evaluate() const
   auto normAndCache = getNormAndCache();
   const RooArgSet* nset = normAndCache.first;
   CacheElem* cache = normAndCache.second;
-  // check that nset is not a null pointer
-  // in this case interpretation of coefficient is arbitrary
-  if (!nset)
-     oocoutW(this, Eval) << "Evaluating RooAddPdf without a defined normalization set. This can lead to ambiguos coefficients definition and incorrect results."
-     << " Use RooAddPdf::fixCoefNormalization(nset) to provide a normalization set for defining uniquely RooAddPdf coefficients!" << std::endl;
+
+  // nset is obtained from _normSet or if it is a null pointer from _refCoefNorm
+  if (!nset) {
+     oocoutW(this, Eval) << "Evaluating RooAddPdf without a defined normalization set. This can lead to ambiguos "
+        "coefficients definition and incorrect results."
+                         << " Use RooAddPdf::fixCoefNormalization(nset) to provide a normalization set for "
+        "defining uniquely RooAddPdf coefficients!"
+                         << std::endl;
+  }
 
   // Do running sum of coef/pdf pairs, calculate lastCoef.
   Double_t value(0);
@@ -835,17 +863,15 @@ RooSpan<double> RooAddPdf::evaluateSpan(RooBatchCompute::RunContext& evalData, c
   const RooArgSet* nset = normAndCache.first;
   CacheElem* cache = normAndCache.second;
 
-
   RooSpan<double> output;
 
   for (unsigned int pdfNo = 0; pdfNo < _pdfList.size(); ++pdfNo) {
     const auto& pdf = static_cast<RooAbsPdf&>(_pdfList[pdfNo]);
     auto pdfOutputs = pdf.getValues(evalData, nset);
-    if (output.empty()) {
+    if (output.empty() || (output.size() == 1 && pdfOutputs.size() > 1)) {
+      const double init = output.empty() ? 0. : output[0];
       output = evalData.makeBatch(this, pdfOutputs.size());
-      for (double& val : output) { //CHECK_VECTORISE
-        val = 0.;
-      }
+      std::fill(output.begin(), output.end(), init);
     }
     assert(output.size() == pdfOutputs.size());
 
@@ -1036,61 +1062,33 @@ Double_t RooAddPdf::analyticalIntegralWN(Int_t code, const RooArgSet* normSet, c
 
 Double_t RooAddPdf::expectedEvents(const RooArgSet* nset) const
 {
-  Double_t expectedTotal(0.0);
+  double expectedTotal{0.0};
 
   cxcoutD(Caching) << "RooAddPdf::expectedEvents(" << GetName() << ") calling getProjCache with nset = " << (nset?*nset:RooArgSet()) << endl ;
-  CacheElem* cache = getProjCache(nset) ;
-  updateCoefficients(*cache,nset) ;
+  CacheElem& cache = *getProjCache(nset) ;
+  updateCoefficients(cache,nset) ;
 
-  if (cache->_rangeProjList.getSize()>0) {
+  if (!cache._rangeProjList.empty()) {
 
-    RooFIter iter1 = cache->_refRangeProjList.fwdIterator() ;
-    RooFIter iter2 = cache->_rangeProjList.fwdIterator() ;
-    RooFIter iter3 = _pdfList.fwdIterator() ;
-
-    if (_allExtendable) {
-
-      RooAbsPdf* pdf ;
-      while ((pdf=(RooAbsPdf*)iter3.next())) {
-	RooAbsReal* r1 = (RooAbsReal*)iter1.next() ;
-	RooAbsReal* r2 = (RooAbsReal*)iter2.next() ;
-	expectedTotal += (r2->getVal()/r1->getVal()) * pdf->expectedEvents(nset) ;
-      }
-
-    } else {
-
-      RooFIter citer = _coefList.fwdIterator() ;
-      RooAbsReal* coef ;
-      while((coef=(RooAbsReal*)citer.next())) {
-	Double_t ncomp = coef->getVal(nset) ;
-	RooAbsReal* r1 = (RooAbsReal*)iter1.next() ;
-	RooAbsReal* r2 = (RooAbsReal*)iter2.next() ;
-	expectedTotal += (r2->getVal()/r1->getVal()) * ncomp ;
-      }
+    for (std::size_t i = 0; i < _pdfList.size(); ++i) {
+      auto const& r1 = static_cast<RooAbsReal&>(cache._refRangeProjList[i]);
+      auto const& r2 = static_cast<RooAbsReal&>(cache._rangeProjList[i]);
+      double ncomp = _allExtendable ? static_cast<RooAbsPdf&>(_pdfList[i]).expectedEvents(nset)
+                                    : static_cast<RooAbsReal&>(_coefList[i]).getVal(nset);
+      expectedTotal += (r2.getVal()/r1.getVal()) * ncomp ;
 
     }
-
-
 
   } else {
 
     if (_allExtendable) {
-
-      RooFIter iter = _pdfList.fwdIterator() ;
-      RooAbsPdf* pdf ;
-      while((pdf=(RooAbsPdf*)iter.next())) {
-	expectedTotal += pdf->expectedEvents(nset) ;
+      for(auto const& arg : _pdfList) {
+        expectedTotal += static_cast<RooAbsPdf*>(arg)->expectedEvents(nset) ;
       }
-
     } else {
-
-      RooFIter citer = _coefList.fwdIterator() ;
-      RooAbsReal* coef ;
-      while((coef=(RooAbsReal*)citer.next())) {
-	Double_t ncomp = coef->getVal(nset) ;
-	expectedTotal += ncomp ;
+      for(auto const& arg : _coefList) {
+        expectedTotal += static_cast<RooAbsReal*>(arg)->getVal(nset) ;
       }
-
     }
 
   }

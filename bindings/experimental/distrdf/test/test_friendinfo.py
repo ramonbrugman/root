@@ -3,8 +3,7 @@ import unittest
 from array import array
 
 import ROOT
-from DistRDF.Node import FriendInfo
-from DistRDF.Node import HeadNode
+from DistRDF.HeadNode import FriendInfo, get_headnode
 
 
 class FriendInfoTest(unittest.TestCase):
@@ -85,7 +84,8 @@ class FriendInfoTest(unittest.TestCase):
         basetree.AddFriend(friendtree)
 
         # Instantiate head node of the graph with the base TTree
-        headnode = HeadNode(basetree)
+        # Passing None as `npartitions` since it is not required for the test
+        headnode = get_headnode(None, basetree)
 
         # Retrieve FriendInfo instance
         friend_info = headnode._get_friend_info()

@@ -518,8 +518,8 @@ TGeoManager::~TGeoManager()
    if (fMaterials) {fMaterials->Delete(); SafeDelete(fMaterials);}
    SafeDelete(fElementTable);
    if (fMedia) {fMedia->Delete(); SafeDelete(fMedia);}
-   if (fHashVolumes) fHashVolumes->Clear("nodelete"); SafeDelete(fHashVolumes);
-   if (fHashGVolumes) fHashGVolumes->Clear("nodelete"); SafeDelete(fHashGVolumes);
+   if (fHashVolumes) { fHashVolumes->Clear("nodelete"); SafeDelete(fHashVolumes); }
+   if (fHashGVolumes) { fHashGVolumes->Clear("nodelete"); SafeDelete(fHashGVolumes); }
    if (fHashPNE) {fHashPNE->Delete(); SafeDelete(fHashPNE);}
    if (fArrayPNE) {delete fArrayPNE;}
    if (fVolumes) {fVolumes->Delete(); SafeDelete(fVolumes);}
@@ -1691,7 +1691,8 @@ void TGeoManager::AnimateTracks(Double_t tmin, Double_t tmax, Int_t nframes, Opt
    if (opt.Contains("/G")) geomanim = kTRUE;
    SetTminTmax(0,0);
    DrawTracks(opt.Data());
-   Double_t start[6], end[6];
+   Double_t start[6] = {0,0,0,0,0,0};
+   Double_t end[6] = {0,0,0,0,0,0};
    Double_t dd[6] = {0,0,0,0,0,0};
    Double_t dlat=0, dlong=0, dpsi=0;
    if (geomanim) {

@@ -68,6 +68,38 @@ public:
    static std::unique_ptr<RNTupleModel> Create() { return std::make_unique<RNTupleModel>(); }
 
    /// Creates a new field and a corresponding tree value that is managed by a shared pointer.
+   ///
+   /// **Example: create some fields and fill an %RNTuple**
+   /// ~~~ {.cpp}
+   /// #include <ROOT/RNTuple.hxx>
+   /// using ROOT::Experimental::RNTupleModel;
+   /// using ROOT::Experimental::RNTupleWriter;
+   ///
+   /// #include <vector>
+   ///
+   /// auto model = RNTupleModel::Create();
+   /// auto pt = model->MakeField<float>("pt");
+   /// auto vec = model->MakeField<std::vector<int>>("vec");
+   ///
+   /// // The RNTuple is written to disk when the RNTupleWriter goes out of scope
+   /// {
+   ///    auto ntuple = RNTupleWriter::Recreate(std::move(model), "myNTuple", "myFile.root");
+   ///    for (int i = 0; i < 100; i++) {
+   ///       *pt = static_cast<float>(i);
+   ///       *vec = {i, i+1, i+2};
+   ///       ntuple->Fill();
+   ///    }
+   /// }
+   /// ~~~
+   /// **Example: create a field with an initial value**
+   /// ~~~ {.cpp}
+   /// #include <ROOT/RNTuple.hxx>
+   /// using ROOT::Experimental::RNTupleModel;
+   ///
+   /// auto model = RNTupleModel::Create();
+   /// // pt's initial value is 42.0
+   /// auto pt = model->MakeField<float>("pt", 42.0);
+   /// ~~~
    template <typename T, typename... ArgsT>
    std::shared_ptr<T> MakeField(std::string_view fieldName, ArgsT&&... args) {
       return MakeField<T>({fieldName, ""}, std::forward<ArgsT>(args)...);
@@ -75,6 +107,17 @@ public:
 
    /// Creates a new field given a `{name, description}` pair and a corresponding tree value that
    /// is managed by a shared pointer.
+   ///
+   /// **Example: create a field with a description**
+   /// ~~~ {.cpp}
+   /// #include <ROOT/RNTuple.hxx>
+   /// using ROOT::Experimental::RNTupleModel;
+   ///
+   /// auto model = RNTupleModel::Create();
+   /// auto hadronFlavour = model->MakeField<float>({
+   ///    "hadronFlavour", "flavour from hadron ghost clustering"
+   /// });
+   /// ~~~
    template <typename T, typename... ArgsT>
    std::shared_ptr<T> MakeField(std::pair<std::string_view, std::string_view> fieldNameDesc,
       ArgsT&&... args)
@@ -88,16 +131,23 @@ public:
    }
 
    /// Adds a field whose type is not known at compile time.  Thus there is no shared pointer returned.
+   ///
+   /// Throws an exception if the field is null.
    void AddField(std::unique_ptr<Detail::RFieldBase> field);
 
+   /// Throws an exception if fromWhere is null.
    template <typename T>
    void AddField(std::string_view fieldName, T* fromWhere) {
       AddField<T>({fieldName, ""}, fromWhere);
    }
 
+   /// Throws an exception if fromWhere is null.
    template <typename T>
    void AddField(std::pair<std::string_view, std::string_view> fieldNameDesc, T* fromWhere) {
       EnsureValidFieldName(fieldNameDesc.first);
+      if (!fromWhere) {
+         throw RException(R__FAIL("null field fromWhere"));
+      }
       auto field = std::make_unique<RField<T>>(fieldNameDesc.first);
       field->SetDescription(fieldNameDesc.second);
       fDefaultEntry->CaptureValue(field->CaptureValue(fromWhere));
@@ -110,6 +160,8 @@ public:
    }
 
    /// Ingests a model for a sub collection and attaches it to the current model
+   ///
+   /// Throws an exception if collectionModel is null.
    std::shared_ptr<RCollectionNTupleWriter> MakeCollection(
       std::string_view fieldName,
       std::unique_ptr<RNTupleModel> collectionModel);

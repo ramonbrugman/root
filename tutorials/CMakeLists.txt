@@ -121,7 +121,9 @@ else()
     set(roofit_veto roofit/rf104_classfactory.C
                     roofit/rf104_classfactory.py
                     roofit/rf401_importttreethx.C
+                    roofit/rf401_importttreethx.py
                     roofit/rf512_wsfactory_oper.C
+                    roofit/rf512_wsfactory_oper.py
     )
   endif()
 endif()
@@ -152,6 +154,8 @@ if(NOT xrootd)
                   dataframe/df105_WBosonAnalysis.py
                   dataframe/df106_HiggsToFourLeptons.py
                   dataframe/df107_SingleTopAnalysis.py
+                  v7/df104.py
+                  v7/df105.py
                   )
 endif()
 
@@ -180,6 +184,7 @@ if(NOT ROOT_mathmore_FOUND)
       math/LegendreAssoc.C
       math/Legendre.C
       math/mathmoreIntegration.C
+      math/multivarGaus.C
       math/tStudent.C
       math/normalDist.C
       roostats/TestNonCentral.C
@@ -193,6 +198,10 @@ if(NOT ROOT_fftw3_FOUND)
                  roofit/rf210_angularconv.C
                  roofit/rf211_paramconv.C
                  roofit/rf512_wsfactory_oper.C
+                 roofit/rf208_convolution.py
+                 roofit/rf210_angularconv.py
+                 roofit/rf211_paramconv.py
+                 roofit/rf512_wsfactory_oper.py
                  fft/FFT.C
                  fit/fitConvolution.C)
 endif()
@@ -276,14 +285,16 @@ if(root7)
   if(NOT davix)
     list(APPEND root7_veto v7/ntuple/ntpl003_lhcbOpenData.C)
     list(APPEND root7_veto v7/ntuple/ntpl004_dimuon.C)
-    list(APPEND root7_veto v7/global_temperatures.C)
+    list(APPEND root7_veto v7/global_temperatures.cxx)
   endif()
   if(NOT dataframe)
-    list(APPEND root7_veto v7/global_temperatures.C)
+    list(APPEND root7_veto v7/global_temperatures.cxx)
     list(APPEND root7_veto v7/ntuple/ntpl004_dimuon.C)
+    list(APPEND root7_veto v7/df104.py)
+    list(APPEND root7_veto v7/df105.py)
   endif()
 else()
-  file(GLOB v7_veto_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/ v7/*.cxx v7/*/*.cxx v7/*.C v7/*/*.C)
+  file(GLOB v7_veto_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/ v7/*.py v7/*.cxx v7/*/*.cxx v7/*.C v7/*/*.C)
   list(APPEND root7_veto ${v7_veto_files})
 endif()
 
@@ -299,7 +310,6 @@ set(extra_veto
   rootlogon.C          # Helper macro
   rootlogoff.C         # Helper macro
   legacy/rootmarks.C          # Instrumentation. Not a standalone tutorial
-  legacy/memstat/memstatExample.C   # Instrumentation. Not a standalone tutorial
   multicore/mp_H1_lambdas.C # not a tutorial; used by mp104_processH1.C et al.
   html/*.C
   net/*.C
@@ -583,6 +593,21 @@ if(ROOT_pyroot_FOUND)
     list(APPEND pyveto pyroot/pyroot004_NumbaDeclare.py)
   endif()
 
+  if((dataframe AND DEFINED ENV{ROOTTEST_IGNORE_PANDAS_PY2} AND PYTHON_VERSION_MAJOR_Development_Main EQUAL 2) OR
+     (dataframe AND DEFINED ENV{ROOTTEST_IGNORE_PANDAS_PY3} AND PYTHON_VERSION_MAJOR_Development_Main EQUAL 3))
+    list(APPEND pyveto dataframe/df026_AsNumpyArrays.py)
+  endif()
+
+  # Rules specific to distributed RDataFrame with Pyspark
+  # Disable distributed RDF tutorials if we didn't check dependencies in the environment first
+  if(NOT test_distrdf_pyspark)
+    list(APPEND pyveto dataframe/distrdf*)
+  endif()
+  # Use main Python executable to run in PySpark driver and executors
+  if(test_distrdf_pyspark)
+    list(APPEND ROOT_environ PYSPARK_PYTHON=${PYTHON_EXECUTABLE_Development_Main})
+  endif()
+
   find_python_module(xgboost QUIET)
   if(NOT PY_XGBOOST_FOUND OR NOT dataframe)
     file(GLOB tmva_veto_py RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} tmva/tmva10*.py)
@@ -624,7 +649,10 @@ if(ROOT_pyroot_FOUND)
                                 tutorial-pyroot-ntuple1-py)
   set(pyroot-fit1-depends tutorial-pyroot-fillrandom-py)
   set(pyroot-na49view-depends tutorial-pyroot-geometry-py)
-  set(roofit-rf104_classfactory-depends tutorial-roofit-rf104_classfactory) #Race condition
+  set(roofit-rf503_wspaceread-depends tutorial-roofit-rf502_wspacewrite-py)
+
+  # Avoid a race condition: make sure Python tutorial is ran after C++ tutorial
+  set(roofit-rf104_classfactory-depends tutorial-roofit-rf104_classfactory)
 
   #----------------------------------------------------------------------
   # List requirements for python tutorials.

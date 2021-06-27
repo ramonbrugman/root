@@ -17,6 +17,7 @@
 #define ROOT7_RNTupleOptions
 
 #include <Compression.h>
+#include <ROOT/RNTupleUtil.hxx>
 
 namespace ROOT {
 namespace Experimental {
@@ -29,8 +30,8 @@ namespace Experimental {
 */
 // clang-format on
 enum class ENTupleContainerFormat {
-  kTFile, // ROOT TFile
-  kBare, // A thin envelope supporting a single RNTuple only
+   kTFile, // ROOT TFile
+   kBare, // A thin envelope supporting a single RNTuple only
 };
 
 
@@ -44,20 +45,57 @@ All page sink classes need to support the common options.
 */
 // clang-format on
 class RNTupleWriteOptions {
-  int fCompression{RCompressionSetting::EDefaults::kUseAnalysis};
-  ENTupleContainerFormat fContainerFormat{ENTupleContainerFormat::kTFile};
+   int fCompression{RCompressionSetting::EDefaults::kUseAnalysis};
+   ENTupleContainerFormat fContainerFormat{ENTupleContainerFormat::kTFile};
+   NTupleSize_t fNEntriesPerCluster = 64000;
+   NTupleSize_t fNElementsPerPage = 10000;
+   bool fUseBufferedWrite = true;
 
 public:
-  int GetCompression() const { return fCompression; }
-  void SetCompression(int val) { fCompression = val; }
-  void SetCompression(RCompressionSetting::EAlgorithm algorithm, int compressionLevel) {
-    fCompression = CompressionSettings(algorithm, compressionLevel);
-  }
+   virtual ~RNTupleWriteOptions() = default;
+   virtual std::unique_ptr<RNTupleWriteOptions> Clone() const
+   { return std::make_unique<RNTupleWriteOptions>(*this); }
 
-  ENTupleContainerFormat GetContainerFormat() const { return fContainerFormat; }
-  void SetContainerFormat(ENTupleContainerFormat val) { fContainerFormat = val; }
+   int GetCompression() const { return fCompression; }
+   void SetCompression(int val) { fCompression = val; }
+   void SetCompression(RCompressionSetting::EAlgorithm algorithm, int compressionLevel) {
+     fCompression = CompressionSettings(algorithm, compressionLevel);
+   }
+
+   ENTupleContainerFormat GetContainerFormat() const { return fContainerFormat; }
+   void SetContainerFormat(ENTupleContainerFormat val) { fContainerFormat = val; }
+
+   NTupleSize_t GetNElementsPerPage() const { return fNElementsPerPage; }
+   void SetNElementsPerPage(NTupleSize_t val) { fNElementsPerPage = val; }
+
+   NTupleSize_t GetNEntriesPerCluster() const { return fNEntriesPerCluster; }
+   void SetNEntriesPerCluster(NTupleSize_t val) { fNEntriesPerCluster = val; }
+
+   bool GetUseBufferedWrite() const { return fUseBufferedWrite; }
+   void SetUseBufferedWrite(bool val) { fUseBufferedWrite = val; }
 };
 
+// clang-format off
+/**
+\class ROOT::Experimental::RNTupleWriteOptionsDaos
+\ingroup NTuple
+\brief DAOS-specific user-tunable settings for storing ntuples
+*/
+// clang-format on
+class RNTupleWriteOptionsDaos : public RNTupleWriteOptions {
+  std::string fObjectClass{"SX"};
+
+public:
+   virtual ~RNTupleWriteOptionsDaos() = default;
+   std::unique_ptr<RNTupleWriteOptions> Clone() const override
+   { return std::make_unique<RNTupleWriteOptionsDaos>(*this); }
+
+   const std::string &GetObjectClass() const { return fObjectClass; }
+   /// Set the object class used to generate OIDs that relate to user data. Any
+   /// `OC_xxx` constant defined in `daos_obj_class.h` may be used here without
+   /// the OC_ prefix.
+   void SetObjectClass(const std::string &val) { fObjectClass = val; }
+};
 
 // clang-format off
 /**
@@ -70,7 +108,7 @@ All page source classes need to support the common options.
 // clang-format on
 class RNTupleReadOptions {
 public:
-  enum EClusterCache {
+   enum EClusterCache {
       kOff,
       kOn,
       kDefault = kOn,

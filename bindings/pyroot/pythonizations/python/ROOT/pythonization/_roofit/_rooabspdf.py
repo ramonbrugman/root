@@ -1,4 +1,6 @@
-# Author: Hinnerk C. Schmidt 02/2021
+# Authors:
+# * Harshal Shende  03/2021
+# * Jonas Rembser 03/2021
 
 ################################################################################
 # Copyright (C) 1995-2020, Rene Brun and Fons Rademakers.                      #
@@ -8,51 +10,89 @@
 # For the list of contributors see $ROOTSYS/README/CREDITS.                    #
 ################################################################################
 
-import cppyy
+r"""
+/**
+\class RooAbsPdf
+\brief \parblock \endparblock
+\htmlonly
+<div class="pyrootbox">
+\endhtmlonly
 
-from ROOT import pythonization
+## PyROOT
 
+Some member functions of RooAbsPdf that take a RooCmdArg as argument also support keyword arguments.
+So far, this applies to RooAbsPdf::fitTo, RooAbsPdf::plotOn, RooAbsPdf::generate, RooAbsPdf::paramOn, RooAbsPdf::createCdf,
+RooAbsPdf::generateBinned, RooAbsPdf::createChi2, RooAbsPdf::prepareMultiGen and RooAbsPdf::createNLL.
+For example, the following code is equivalent in PyROOT:
+\code{.py}
+# Directly passing a RooCmdArg:
+pdf.fitTo(data, ROOT.RooFit.Range("r1"))
 
-def __getter(k, v):
-    # helper function to get CmdArg attribute from `RooFit` 
-    # Parameters:
-    # k: key of the kwarg
-    # v: value of the kwarg
-    if isinstance(v, (tuple, list)):
-        attr = getattr(cppyy.gbl.RooFit, k)(*v)
-    elif isinstance(v, (dict, )):
-        attr = getattr(cppyy.gbl.RooFit, k)(**v)
-    else:
-        attr = getattr(cppyy.gbl.RooFit, k)(v)
-    return attr
+# With keyword arguments:
+pdf.fitTo(data, Range="r1")
+\endcode
 
+\htmlonly
+</div>
+\endhtmlonly
+*/
+"""
 
-def _fitTo(self, *args, **kwargs):
-    """
-    Docstring
-    """
-    # Redefinition of `RooAbsPdf.fitTo` for keyword arguments.
-    # the keywords must correspond to the CmdArg of the `fitTo` function.
-    # Parameters:
-    # self: instance of `RooAbsPdf` class
-    # *args: arguments passed to `fitTo`
-    # **kwargs: keyword arguments passed to `fitTo`
-    if not kwargs:
-        return self._OriginalFitTo(*args)
-    else:
-        nargs = args + tuple((__getter(k, v) for k, v in kwargs.items()))
-        return self._OriginalFitTo(*nargs)
+from ._rooabsreal import RooAbsReal
+from ._utils import _kwargs_to_roocmdargs
 
 
-@pythonization()
-def pythonize_rooabspdf(klass, name):
-    # Parameters:
-    # klass: class to be pythonized
-    # name: string containing the name of the class
+class RooAbsPdf(RooAbsReal):
+    def fitTo(self, *args, **kwargs):
+        # Redefinition of `RooAbsPdf.fitTo` for keyword arguments.
+        # The keywords must correspond to the CmdArg of the `fitTo` function.
+        args, kwargs = _kwargs_to_roocmdargs(*args, **kwargs)
+        return self._fitTo(*args, **kwargs)
 
-    if name == 'RooAbsPdf':
-        # Add pythonization of `fitTo` function
-        klass._OriginalFitTo = klass.fitTo
-        klass.fitTo = _fitTo
+    def plotOn(self, *args, **kwargs):
+        # Redefinition of `RooAbsPdf.plotOn` for keyword arguments.
+        # The keywords must correspond to the CmdArg of the `plotOn` function.
+        args, kwargs = _kwargs_to_roocmdargs(*args, **kwargs)
+        return self._plotOn(*args, **kwargs)
 
-    return True
+    def generate(self, *args, **kwargs):
+        # Redefinition of `RooAbsPdf.generate` for keyword arguments.
+        # The keywords must correspond to the CmdArg of the `generate` function.
+        args, kwargs = _kwargs_to_roocmdargs(*args, **kwargs)
+        return self._generate(*args, **kwargs)
+
+    def paramOn(self, *args, **kwargs):
+        # Redefinition of `RooAbsPdf.paramOn` for keyword arguments.
+        # The keywords must correspond to the CmdArg of the `paramOn` function.
+        args, kwargs = _kwargs_to_roocmdargs(*args, **kwargs)
+        return self._paramOn(*args, **kwargs)
+
+    def createNLL(self, *args, **kwargs):
+        # Redefinition of `RooAbsPdf.createNLL` for keyword arguments.
+        # The keywords must correspond to the CmdArg of the `createNLL` function.
+        args, kwargs = _kwargs_to_roocmdargs(*args, **kwargs)
+        return self._createNLL(*args, **kwargs)
+
+    def createChi2(self, *args, **kwargs):
+        # Redefinition of `RooAbsPdf.createChi2` for keyword arguments.
+        # The keywords must correspond to the CmdArg of the `createChi2` function.
+        args, kwargs = _kwargs_to_roocmdargs(*args, **kwargs)
+        return self._createChi2(*args, **kwargs)
+
+    def createCdf(self, *args, **kwargs):
+        # Redefinition of `RooAbsPdf.createCdf` for keyword arguments.
+        # The keywords must correspond to the CmdArg of the `createCdf` function.
+        args, kwargs = _kwargs_to_roocmdargs(*args, **kwargs)
+        return self._createCdf(*args, **kwargs)
+
+    def generateBinned(self, *args, **kwargs):
+        # Redefinition of `RooAbsPdf.generateBinned` for keyword arguments.
+        # The keywords must correspond to the CmdArg of the `generateBinned` function.
+        args, kwargs = _kwargs_to_roocmdargs(*args, **kwargs)
+        return self._generateBinned(*args, **kwargs)
+
+    def prepareMultiGen(self, *args, **kwargs):
+        # Redefinition of `RooAbsPdf.prepareMultiGen` for keyword arguments.
+        # The keywords must correspond to the CmdArg of the `prepareMultiGen` function.
+        args, kwargs = _kwargs_to_roocmdargs(*args, **kwargs)
+        return self._prepareMultiGen(*args, **kwargs)

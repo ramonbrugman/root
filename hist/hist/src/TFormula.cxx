@@ -189,7 +189,7 @@ ClassImp(TFormula);
        ```root -l -q -e TFormula("", "x%10").Eval(0)```.
 
     The operator `^` is defined to mean exponentiation instead of the C/C++
-    interpretaion xor. `**` is added, also meaning exponentiation.
+    interpretation xor. `**` is added, also meaning exponentiation.
 
     The operators `++` and `@` are added, and are shorthand for the a linear
     function. That means the expression `x@2` will be expanded to
@@ -1388,11 +1388,11 @@ void TFormula::HandleFunctionArguments(TString &formula)
          } else {
             // otherwise, try to match default parametrized functions
 
-            for (auto keyval : parFunctions) {
+            for (const auto &keyval : parFunctions) {
                // (name, ndim)
-               pair<TString, Int_t> name_ndim = keyval.first;
+               const pair<TString, Int_t> &name_ndim = keyval.first;
                // (formula without normalization, formula with normalization)
-               pair<TString, TString> formulaPair = keyval.second;
+               const pair<TString, TString> &formulaPair = keyval.second;
 
                // match names like gaus, gausn, breitwigner
                if (name == name_ndim.first)
@@ -1852,7 +1852,7 @@ void TFormula::ExtractFunctors(TString &formula)
             i++;
          } while (formula[i] != '\"');
       }
-      // case of e or E for numbers in exponential notaton (e.g. 2.2e-3)
+      // case of e or E for numbers in exponential notation (e.g. 2.2e-3)
       if (IsScientificNotation(formula, i))
          continue;
       // case of x for hexadecimal numbers
@@ -3703,7 +3703,7 @@ void TFormula::Streamer(TBuffer &b)
             }
          }
          else {
-            // we also delay the initializtion of lamda expressions
+            // we also delay the initialization of lamda expressions
             if (!fLazyInitialization) {
                bool ret = InitLambdaExpression(fFormula);
                if (ret) {

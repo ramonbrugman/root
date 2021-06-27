@@ -1,5 +1,5 @@
 /*************************************************************************
- * Copyright (C) 1995-2019, Rene Brun and Fons Rademakers.               *
+ * Copyright (C) 1995-2021, Rene Brun and Fons Rademakers.               *
  * All rights reserved.                                                  *
  *                                                                       *
  * For the licensing terms see $ROOTSYS/LICENSE.                         *
@@ -9,7 +9,7 @@
 #ifndef ROOT7_RAttrMargins
 #define ROOT7_RAttrMargins
 
-#include <ROOT/RAttrBase.hxx>
+#include <ROOT/RAttrAggregation.hxx>
 #include <ROOT/RAttrValue.hxx>
 #include <ROOT/RPadLength.hxx>
 
@@ -24,14 +24,15 @@ namespace Experimental {
 \warning This is part of the ROOT 7 prototype! It will change without notice. It might trigger earthquakes. Feedback is welcome!
 */
 
-class RAttrMargins : public RAttrBase {
+class RAttrMargins : public RAttrAggregation {
 
    RAttrValue<RPadLength>   fLeft{this, "left", 0._normal};
    RAttrValue<RPadLength>   fRight{this, "right", 0._normal};
    RAttrValue<RPadLength>   fTop{this, "top", 0._normal};
    RAttrValue<RPadLength>   fBottom{this, "bottom", 0._normal};
+   RAttrValue<RPadLength>   fAll{this, "all", 0._normal};
 
-   R__ATTR_CLASS(RAttrMargins, "margin");
+   R__ATTR_CLASS(RAttrMargins, "margins");
 
 public:
 
@@ -46,6 +47,10 @@ public:
 
    RAttrMargins &SetBottom(const RPadLength &len) { fBottom = len; return *this; }
    RPadLength GetBottom() const { return fBottom; }
+
+   RAttrMargins &SetAll(const RPadLength &len) { fAll = len; return *this; }
+   RPadLength GetAll() const { return fAll; }
+
 };
 
 } // namespace Experimental

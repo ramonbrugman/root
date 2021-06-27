@@ -24,14 +24,12 @@ class RDataFrame(object):
     Interface to an RDataFrame that can run its computation graph distributedly.
     """
 
-    def __init__(self, headnode, backend, **kwargs):
+    def __init__(self, headnode, backend):
         """Initialization of """
 
         self._headnode = headnode
 
         self._headnode.backend = backend
-
-        self._headnode.npartitions = kwargs.get("npartitions", 2)
 
         self._headproxy = Proxy.TransformationProxy(self._headnode)
 

@@ -1209,6 +1209,7 @@ Double_t THnBase::ComputeIntegral()
    if (fIntegral[GetNbins()] == 0.) {
       Error("ComputeIntegral", "No hits in regular bins (non over/underflow).");
       delete [] fIntegral;
+      fIntegral = nullptr;
       return 0.;
    }
 
@@ -1340,7 +1341,7 @@ void THnBase::Print(Option_t* options) const
    Bool_t optStat    = options && (strchr(options, 'S') || (strchr(options, 's')));
    Bool_t optContent = options && (strchr(options, 'C') || (strchr(options, 'c')));
 
-   Printf("%s (*0x%lx): \"%s\" \"%s\"", IsA()->GetName(), (unsigned long)this, GetName(), GetTitle());
+   Printf("%s (*0x%zx): \"%s\" \"%s\"", IsA()->GetName(), (size_t)this, GetName(), GetTitle());
    Printf("  %d dimensions, %g entries in %lld filled bins", GetNdimensions(), GetEntries(), GetNbins());
 
    if (optAxis) {

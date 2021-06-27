@@ -423,6 +423,10 @@ N: Stephan Hageboeck
 E: stephan.hageboeck@cern.ch
 D: Roofit support and developments
 
+N: Jonas Hahnfeld
+E: jonas.hahnfeld@cern.ch
+D: Portable implementation of RANLUX++
+
 N: Andy Hanushevsky
 E: abh@slac.stanford.edu
 D: the eXtended ROOT daemon (xrootd)
@@ -447,6 +451,10 @@ D: apply method in the TGraph classes
 N: Marc Hemberger
 E: hemberg@clri6a.gsi.de
 D: contributions to the thread classes, SapDB interface
+
+N: Johannes Hentrich
+E: info@johannes-hentrich.net
+D: ROOT web site, in particular the Manual part.
 
 N: Fabio Hernandez
 E: fabio@in2p3.fr

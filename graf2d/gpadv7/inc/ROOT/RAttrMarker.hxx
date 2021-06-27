@@ -1,5 +1,5 @@
 /*************************************************************************
- * Copyright (C) 1995-2019, Rene Brun and Fons Rademakers.               *
+ * Copyright (C) 1995-2021, Rene Brun and Fons Rademakers.               *
  * All rights reserved.                                                  *
  *                                                                       *
  * For the licensing terms see $ROOTSYS/LICENSE.                         *
@@ -9,8 +9,7 @@
 #ifndef ROOT7_RAttrMarker
 #define ROOT7_RAttrMarker
 
-#include <ROOT/RAttrBase.hxx>
-#include <ROOT/RAttrColor.hxx>
+#include <ROOT/RAttrAggregation.hxx>
 #include <ROOT/RAttrValue.hxx>
 
 namespace ROOT {
@@ -24,17 +23,57 @@ namespace Experimental {
 \warning This is part of the ROOT 7 prototype! It will change without notice. It might trigger earthquakes. Feedback is welcome!
 */
 
-class RAttrMarker : public RAttrBase {
+class RAttrMarker : public RAttrAggregation {
 
-   RAttrColor           fColor{this, "color"};      ///<! marker color
-   RAttrValue<double>   fSize{this, "size", 1.};    ///<! marker size
-   RAttrValue<int>      fStyle{this, "style", 1};   ///<! marker style
+   RAttrValue<RColor>   fColor{this, "color", RColor::kBlack};  ///<! marker color
+   RAttrValue<double>   fSize{this, "size", 1.};                ///<! marker size
+   RAttrValue<int>      fStyle{this, "style", 1};               ///<! marker style
 
    R__ATTR_CLASS(RAttrMarker, "marker");
 
+   enum EStyle {
+      kNone = 0,
+      kDot = 1,
+      kPlus = 2,
+      kStar = 3,
+      kCircle = 4,
+      kMultiply = 5,
+      kFullDotSmall = 6,
+      kFullDotMedium = 7,
+      kFullDotLarge = 8,
+      kFullCircle = 20,
+      kFullSquare = 21,
+      kFullTriangleUp = 22,
+      kFullTriangleDown = 23,
+      kOpenCircle = 24,
+      kOpenSquare = 25,
+      kOpenTriangleUp = 26,
+      kOpenDiamond = 27,
+      kOpenCross = 28,
+      kFullStar = 29,
+      kOpenStar = 30,
+      kOpenTriangleDown = 32,
+      kFullDiamond = 33,
+      kFullCross = 34,
+      kOpenDiamondCross = 35,
+      kOpenSquareDiagonal = 36,
+      kOpenThreeTriangles = 37,
+      kOctagonCross = 38,
+      kFullThreeTriangles = 39,
+      kOpenFourTrianglesX = 40,
+      kFullFourTrianglesX = 41,
+      kOpenDoubleDiamond = 42,
+      kFullDoubleDiamond = 43,
+      kOpenFourTrianglesPlus = 44,
+      kFullFourTrianglesPlus = 45,
+      kOpenCrossX = 46,
+      kFullCrossX = 47,
+      kFourSquaresX = 48,
+      kFourSquaresPlus = 49
+   };
+
    RAttrMarker &SetColor(const RColor &color) { fColor = color; return *this; }
-   RColor GetColor() const { return fColor.GetColor(); }
-   RAttrColor &AttrColor() { return fColor; }
+   RColor GetColor() const { return fColor; }
 
    /// The size of the marker.
    RAttrMarker &SetSize(double size) { fSize = size; return *this; }

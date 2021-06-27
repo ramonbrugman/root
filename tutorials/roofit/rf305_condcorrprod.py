@@ -26,31 +26,21 @@ fy = ROOT.RooPolyVar("fy", "fy", y, ROOT.RooArgList(a0, a1))
 
 # Create gaussx(x,f(y),sx)
 sigmax = ROOT.RooRealVar("sigma", "width of gaussian", 0.5)
-gaussx = ROOT.RooGaussian(
-    "gaussx", "Gaussian in x with shifting mean in y", x, fy, sigmax)
+gaussx = ROOT.RooGaussian("gaussx", "Gaussian in x with shifting mean in y", x, fy, sigmax)
 
 # Create pdf gy(y)
 # -----------------------------------------------------------
 
 # Create gaussy(y,0,5)
-gaussy = ROOT.RooGaussian(
-    "gaussy",
-    "Gaussian in y",
-    y,
-    ROOT.RooFit.RooConst(0),
-    ROOT.RooFit.RooConst(3))
+gaussy = ROOT.RooGaussian("gaussy", "Gaussian in y", y, ROOT.RooFit.RooConst(0), ROOT.RooFit.RooConst(3))
 
 # Create product gx(x|y)*gy(y)
 # -------------------------------------------------------
 
 # Create gaussx(x,sx|y) * gaussy(y)
 model = ROOT.RooProdPdf(
-    "model",
-    "gaussx(x|y)*gaussy(y)",
-    ROOT.RooArgSet(gaussy),
-    ROOT.RooFit.Conditional(
-        ROOT.RooArgSet(gaussx),
-        ROOT.RooArgSet(x)))
+    "model", "gaussx(x|y)*gaussy(y)", ROOT.RooArgSet(gaussy), Conditional=(ROOT.RooArgSet(gaussx), ROOT.RooArgSet(x))
+)
 
 # Sample, fit and plot product pdf
 # ---------------------------------------------------------------
@@ -71,8 +61,7 @@ data.plotOn(yframe)
 model.plotOn(yframe)
 
 # Make two-dimensional plot in x vs y
-hh_model = model.createHistogram("hh_model", x, ROOT.RooFit.Binning(
-    50), ROOT.RooFit.YVar(y, ROOT.RooFit.Binning(50)))
+hh_model = model.createHistogram("hh_model", x, ROOT.RooFit.Binning(50), ROOT.RooFit.YVar(y, ROOT.RooFit.Binning(50)))
 hh_model.SetLineColor(ROOT.kBlue)
 
 # Make canvas and draw ROOT.RooPlots

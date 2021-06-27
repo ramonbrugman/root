@@ -1,5 +1,5 @@
 /*************************************************************************
- * Copyright (C) 1995-2020, Rene Brun and Fons Rademakers.               *
+ * Copyright (C) 1995-2021, Rene Brun and Fons Rademakers.               *
  * All rights reserved.                                                  *
  *                                                                       *
  * For the licensing terms see $ROOTSYS/LICENSE.                         *
@@ -9,9 +9,8 @@
 #ifndef ROOT7_RAttrText
 #define ROOT7_RAttrText
 
-#include <ROOT/RAttrBase.hxx>
+#include <ROOT/RAttrAggregation.hxx>
 #include <ROOT/RAttrValue.hxx>
-#include <ROOT/RAttrColor.hxx>
 
 namespace ROOT {
 namespace Experimental {
@@ -24,13 +23,13 @@ namespace Experimental {
 \warning This is part of the ROOT 7 prototype! It will change without notice. It might trigger earthquakes. Feedback is welcome!
 */
 
-class RAttrText : public RAttrBase {
+class RAttrText : public RAttrAggregation {
 
-   RAttrColor fColor{this, "color"};                          ///<! text color
+   RAttrValue<RColor> fColor{this, "color", RColor::kBlack};  ///<! text color
    RAttrValue<double> fSize{this, "size", 12.};               ///<! text size
    RAttrValue<double> fAngle{this, "angle", 0.};              ///<! text angle
    RAttrValue<int> fAlign{this, "align", 22};                 ///<! text align
-   RAttrValue<std::string> fFontFamily{this, "font_familty"}; ///<! font family, corresponds to css font-familty attribute
+   RAttrValue<std::string> fFontFamily{this, "font_family"};  ///<! font family, corresponds to css font-familty attribute
    RAttrValue<std::string> fFontStyle{this, "font_style"};    ///<! font style, corresponds to css font-style attribute
    RAttrValue<std::string> fFontWeight{this, "font_weight"};  ///<! font weight, corresponds to css font-weight attribute
 
@@ -47,6 +46,10 @@ class RAttrText : public RAttrBase {
    ///The text alignment
    RAttrText &SetAlign(int align) { fAlign = align; return *this; }
    int GetAlign() const { return fAlign; }
+
+   ///The color of the text.
+   RAttrText &SetColor(const RColor &color) { fColor = color; return *this; }
+   RColor GetColor() const { return fColor; }
 
    ///Set text font by id as usually handled in the ROOT, set number between 1 and 15
    RAttrText &SetFont(int font)
@@ -71,8 +74,8 @@ class RAttrText : public RAttrBase {
       }
 
       SetFontFamily(family);
-      SetFontWeight(style);
-      SetFontStyle(weight);
+      SetFontWeight(weight);
+      SetFontStyle(style);
 
       return *this;
    }
@@ -109,12 +112,6 @@ class RAttrText : public RAttrBase {
       return *this;
    }
    std::string GetFontWeight() const { return fFontWeight; }
-
-
-   ///The color of the text.
-   RAttrText &SetColor(const RColor &color) { fColor = color; return *this; }
-   RColor GetColor() const { return fColor.GetColor(); }
-   RAttrColor &AttrColor() { return fColor; }
 
 };
 

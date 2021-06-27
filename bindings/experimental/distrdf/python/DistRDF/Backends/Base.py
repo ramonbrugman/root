@@ -14,9 +14,9 @@ import functools
 from abc import ABCMeta
 from abc import abstractmethod
 
-import numpy
 import ROOT
 from DistRDF.Backends import Utils
+from DistRDF.HeadNode import TreeHeadNode
 
 # Abstract class declaration
 # This ensures compatibility between Python 2 and 3 versions, since in
@@ -63,6 +63,11 @@ class BaseBackend(ABC):
 
     headers = set()
     shared_libraries = set()
+
+    # Define a minimum amount of partitions for any distributed RDataFrame.
+    # This is a safe lower limit, to account for backends that may not support
+    # the case where the distributed RDataFrame processes only one partition.
+    MIN_NPARTITIONS = 2
 
     @classmethod
     def register_initialization(cls, fun, *args, **kwargs):
@@ -114,16 +119,19 @@ class BaseBackend(ABC):
         """
         headnode = generator.headnode
         computation_graph_callable = generator.get_callable()
-        # Arguments needed to create PyROOT RDF object
-        rdf_args = headnode.args
-        treename = headnode.get_treename()
-        selected_branches = headnode.get_branches()
+
+        if isinstance(headnode, TreeHeadNode):
+            treename = headnode.treename
+            defaultbranches = headnode.defaultbranches
+        else:
+            # Only other head node type is EmptySourceHeadNode at the moment
+            treename = None
+            nentries = headnode.nentries
 
         # Avoid having references to the instance inside the mapper
         initialization = self.initialization
 
         # Build the ranges for the current dataset
-        headnode.npartitions = self.optimize_npartitions(headnode.npartitions)
         ranges = headnode.build_ranges()
 
         def mapper(current_range):
@@ -153,7 +161,7 @@ class BaseBackend(ABC):
             start = int(current_range.start)
             end = int(current_range.end)
 
-            if treename:
+            if treename is not None:
                 # Build TChain of files for this range:
                 chain = ROOT.TChain(treename)
                 for f in current_range.filelist:
@@ -184,12 +192,13 @@ class BaseBackend(ABC):
                         # Finally add friend TChain to the parent
                         chain.AddFriend(friend_chain)
 
-                if selected_branches:
-                    rdf = ROOT.ROOT.RDataFrame(chain, selected_branches)
+                if defaultbranches is not None:
+                    rdf = ROOT.RDataFrame(chain, defaultbranches)
                 else:
-                    rdf = ROOT.ROOT.RDataFrame(chain)
+                    rdf = ROOT.RDataFrame(chain)
             else:
-                rdf = ROOT.ROOT.RDataFrame(*rdf_args)  # PyROOT RDF object
+                # Only other head node type is EmptySourceHeadNode at the moment
+                rdf = ROOT.RDataFrame(nentries)
 
             # # TODO : If we want to run multi-threaded in a Spark node in
             # # the future, use `TEntryList` instead of `Range`
@@ -240,6 +249,11 @@ class BaseBackend(ABC):
                 # Concatenate the partial numpy arrays along the same key of
                 # the dictionary.
                 elif isinstance(mergeable_out, dict):
+                    # Import numpy lazily
+                    try:
+                        import numpy
+                    except ImportError:
+                        raise ImportError("Failed to import numpy during distributed RDataFrame reduce step.")
                     mergeables_out[index] = {
                         key: numpy.concatenate([mergeable_out[key],
                                                 mergeable_in[key]])
@@ -291,12 +305,12 @@ class BaseBackend(ABC):
         """
         pass
 
-    def optimize_npartitions(self, npartitions):
+    def optimize_npartitions(self):
         """
         Distributed backends may optimize the number of partitions of the
         current dataset or leave it as it is.
         """
-        return npartitions
+        return self.MIN_NPARTITIONS
 
     def distribute_files(self, files_paths):
         """

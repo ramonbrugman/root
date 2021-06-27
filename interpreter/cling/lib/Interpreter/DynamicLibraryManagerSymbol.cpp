@@ -259,8 +259,8 @@ static bool MayExistInElfObjectFile(llvm::object::ObjectFile *soFile,
                                  uint32_t hash) {
   assert(soFile->isELF() && "Not ELF");
 
-  // LLVM9: soFile->makeTriple().is64Bit()
-  const int bits = 8 * soFile->getBytesInAddress();
+  // Compute the platform bitness -- either 64 or 32.
+  const unsigned bits = 8 * soFile->getBytesInAddress();
 
   llvm::StringRef contents = GetGnuHashSection(soFile);
   if (contents.size() < 16)
@@ -870,7 +870,9 @@ namespace cling {
 
   void DynamicLibraryManager::initializeDyld(
                  std::function<bool(llvm::StringRef)> shouldPermanentlyIgnore) {
-    assert(!m_Dyld && "Already initialized!");
+     //assert(!m_Dyld && "Already initialized!");
+    if (m_Dyld)
+      delete m_Dyld;
 
     std::string exeP = GetExecutablePath();
     auto ObjF =

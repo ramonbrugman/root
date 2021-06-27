@@ -13,7 +13,7 @@ JSROOT.define([], () =>  {
    /** @summary lgam function
      * @private */
    mth.lgam = function( x ) {
-      let p, q, u, w, z, i, sgngam = 1;
+      let p, q, u, w, z, sgngam = 1;
       const kMAXLGM = 2.556348e305,
             LS2PI = 0.91893853320467274178,
       A = [
@@ -327,7 +327,7 @@ JSROOT.define([], () =>  {
    mth.igami = function(a, y0) {
       // check the domain
       if (a <= 0) {
-         alert("igami : Wrong domain for parameter a (must be > 0)");
+         console.error("igami : Wrong domain for parameter a (must be > 0)");
          return 0;
       }
       if (y0 <= 0) {

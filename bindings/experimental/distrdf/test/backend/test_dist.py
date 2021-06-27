@@ -1,6 +1,6 @@
 import unittest
 
-from DistRDF import Node
+from DistRDF import HeadNode
 from DistRDF import Proxy
 from DistRDF.Backends import Base
 
@@ -81,7 +81,8 @@ class DistRDataFrameInterface(unittest.TestCase):
         def __init__(self, *args):
             """initialize"""
 
-            self.headnode = Node.HeadNode(*args)
+            # Passing None as `npartitions`, the tests will change it as needed.
+            self.headnode = HeadNode.get_headnode(None, *args)
 
             self.headnode.backend = DistRDataFrameInterface.TestBackend()
 
@@ -97,6 +98,7 @@ class DistRDataFrameInterface(unittest.TestCase):
         on its parameters.
         """
         headnode = rdf.headnode
+        headnode.npartitions = 2
 
         hist = rdf.Define("b1", "tdfentry_")\
                   .Histo1D("b1")
@@ -106,7 +108,6 @@ class DistRDataFrameInterface(unittest.TestCase):
         # the RDataFrame head node
         hist.GetValue()
 
-        headnode.npartitions = 2
         ranges = rangesToTuples(headnode.build_ranges())
         return ranges
 

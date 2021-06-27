@@ -1,5 +1,5 @@
 /*************************************************************************
- * Copyright (C) 1995-2017, Rene Brun and Fons Rademakers.               *
+ * Copyright (C) 1995-2021, Rene Brun and Fons Rademakers.               *
  * All rights reserved.                                                  *
  *                                                                       *
  * For the licensing terms see $ROOTSYS/LICENSE.                         *
@@ -20,15 +20,17 @@ namespace Experimental {
 \ingroup GrafROOT7
 \brief A simple line.
 \author Olivier Couet <Olivier.Couet@cern.ch>
+\author Sergey Linev <S.Linev@gsi.de>
 \date 2017-10-16
 \warning This is part of the ROOT 7 prototype! It will change without notice. It might trigger earthquakes. Feedback is welcome!
 */
 
 class RLine : public RDrawable {
 
-   RPadPos fP1, fP2;                  ///< line begin/end
-   RAttrLine fAttrLine{this, "line"}; ///<! line attributes
-
+   RPadPos fP1, fP2;                                   ///< line begin/end
+   RAttrLine fAttrLine{this, "line"};                  ///<! line attributes
+   RAttrValue<bool> fOnFrame{this, "onframe", false};  ///<! is drawn on the frame or not
+   RAttrValue<bool> fClipping{this, "clipping", false}; ///<! is clipping on when drawn on the frame
 public:
    RLine() : RDrawable("line") {}
 
@@ -38,28 +40,20 @@ public:
       fP2 = p2;
    }
 
-   RLine &SetP1(const RPadPos &p1)
-   {
-      fP1 = p1;
-      return *this;
-   }
-
-   RLine &SetP2(const RPadPos &p2)
-   {
-      fP2 = p2;
-      return *this;
-   }
+   RLine &SetP1(const RPadPos &p1) { fP1 = p1; return *this; }
+   RLine &SetP2(const RPadPos &p2) { fP2 = p2; return *this; }
 
    const RPadPos &GetP1() const { return fP1; }
    const RPadPos &GetP2() const { return fP2; }
 
-   const RAttrLine &GetAttrLine() const { return fAttrLine; }
-   RLine &SetAttrLine(const RAttrLine &attr)
-   {
-      fAttrLine = attr;
-      return *this;
-   }
+   const RAttrLine &AttrLine() const { return fAttrLine; }
    RAttrLine &AttrLine() { return fAttrLine; }
+
+   RLine &SetOnFrame(bool on = true) { fOnFrame = on; return *this; }
+   bool GetOnFrame() const { return fOnFrame; }
+
+   RLine &SetClipping(bool on = true) { fClipping = on; return *this; }
+   bool GetClipping() const { return fClipping; }
 };
 
 } // namespace Experimental

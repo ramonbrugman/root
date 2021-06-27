@@ -11,6 +11,7 @@
 
 ROOT_STANDARD_LIBRARY_PACKAGE(RooFitCore
   HEADERS
+    Floats.h
     Roo1DTable.h
     RooAbsAnaConvPdf.h
     RooAbsArg.h
@@ -112,7 +113,6 @@ ROOT_STANDARD_LIBRARY_PACKAGE(RooFitCore
     RooGenProdProj.h
     RooGlobalFunc.h
     RooGrid.h
-    RooHashTable.h
     RooHistError.h
     RooHistFunc.h
     RooHist.h
@@ -123,6 +123,7 @@ ROOT_STANDARD_LIBRARY_PACKAGE(RooFitCore
     RooIntegratorBinding.h
     RooInt.h
     RooInvTransform.h
+    RooLinearCombination.h
     RooLinearVar.h
     RooLinkedListElem.h
     RooLinkedList.h
@@ -144,7 +145,6 @@ ROOT_STANDARD_LIBRARY_PACKAGE(RooFitCore
     RooMultiGenFunction.h
     RooMultiVarGaussian.h
     RooNameReg.h
-    RooNameSet.h
     RooNLLVar.h
     RooNormSetCache.h
     RooNumber.h
@@ -170,6 +170,7 @@ ROOT_STANDARD_LIBRARY_PACKAGE(RooFitCore
     RooProofDriverSelector.h
     RooPullVar.h
     RooQuasiRandomGenerator.h
+    RooRatio.h
     RooRandom.h
     RooRandomizeParamMCSModule.h
     RooRangeBinning.h
@@ -224,8 +225,11 @@ ROOT_STANDARD_LIBRARY_PACKAGE(RooFitCore
     RooWrapperPdf.h
     RooNaNPacker.h
     RooBinSamplingPdf.h
+    RooBinWidthFunction.h
     RooFitLegacy/RooCatTypeLegacy.h
     RooFitLegacy/RooCategorySharedProperties.h
+    RooFitLegacy/RooHashTable.h
+    RooFitLegacy/RooNameSet.h
     RooFitLegacy/RooTreeData.h
   SOURCES
     src/BidirMMapPipe.cxx
@@ -328,7 +332,6 @@ ROOT_STANDARD_LIBRARY_PACKAGE(RooFitCore
     src/RooGenProdProj.cxx
     src/RooGlobalFunc.cxx
     src/RooGrid.cxx
-    src/RooHashTable.cxx
     src/RooHist.cxx
     src/RooHistError.cxx
     src/RooHistFunc.cxx
@@ -339,6 +342,7 @@ ROOT_STANDARD_LIBRARY_PACKAGE(RooFitCore
     src/RooIntegrator2D.cxx
     src/RooIntegratorBinding.cxx
     src/RooInvTransform.cxx
+    src/RooLinearCombination.cxx
     src/RooLinearVar.cxx
     src/RooLinkedList.cxx
     src/RooLinkedListElem.cxx
@@ -359,7 +363,6 @@ ROOT_STANDARD_LIBRARY_PACKAGE(RooFitCore
     src/RooMultiGenFunction.cxx
     src/RooMultiVarGaussian.cxx
     src/RooNameReg.cxx
-    src/RooNameSet.cxx
     src/RooNLLVar.cxx
     src/RooNormSetCache.cxx
     src/RooNumber.cxx
@@ -385,6 +388,7 @@ ROOT_STANDARD_LIBRARY_PACKAGE(RooFitCore
     src/RooProofDriverSelector.cxx
     src/RooPullVar.cxx
     src/RooQuasiRandomGenerator.cxx
+    src/RooRatio.cxx
     src/RooRandom.cxx
     src/RooRandomizeParamMCSModule.cxx
     src/RooRangeBinning.cxx
@@ -435,9 +439,12 @@ ROOT_STANDARD_LIBRARY_PACKAGE(RooFitCore
     src/RooHelpers.cxx
     src/RooWrapperPdf.cxx
     src/RooBinSamplingPdf.cxx
+    src/RooBinWidthFunction.cxx
     src/RooFitLegacy/RooCatTypeLegacy.cxx
     src/RooFitLegacy/RooCategorySharedProperties.cxx
+    src/RooFitLegacy/RooHashTable.cxx
     src/RooFitLegacy/RooMultiCatIter.cxx
+    src/RooFitLegacy/RooNameSet.cxx
   DICTIONARY_OPTIONS
     "-writeEmptyRootPCM"
   LIBRARIES

@@ -74,8 +74,8 @@ public:
 
    RAction(const RAction &) = delete;
    RAction &operator=(const RAction &) = delete;
-   // must call Deregister here, before fPrevDataFrame is destroyed,
-   // otherwise if fPrevDataFrame is fLoopManager we get a use after delete
+   // must call Deregister here (and not e.g. in ~RActionBase), because we need fPrevDataFrame to be alive:
+   // otherwise, if fPrevDataFrame is fLoopManager, we get a use after delete
    ~RAction() { fLoopManager->Deregister(this); }
 
    /**
@@ -164,6 +164,8 @@ private:
 
    // this one is always available but has lower precedence thanks to `...`
    void *PartialUpdateImpl(...) { throw std::runtime_error("This action does not support callbacks!"); }
+
+   std::function<void(unsigned int)> GetDataBlockCallback() final { return fHelper.GetDataBlockCallback(); }
 };
 
 } // namespace RDF

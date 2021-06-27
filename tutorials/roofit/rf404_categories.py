@@ -37,8 +37,7 @@ b0flav.Print()
 
 # Generate a dummy dataset
 x = ROOT.RooRealVar("x", "x", 0, 10)
-data = ROOT.RooPolynomial("p", "p", x).generate(
-    ROOT.RooArgSet(x, b0flav, tagCat), 10000)
+data = ROOT.RooPolynomial("p", "p", x).generate(ROOT.RooArgSet(x, b0flav, tagCat), 10000)
 
 # Print tables of category contents of datasets
 # --------------------------------------------------
@@ -77,5 +76,5 @@ tagCat.addToRange("soso", "NetTagger-1")
 tagCat.addToRange("soso", "NetTagger-2")
 
 # Use category range in dataset reduction specification
-goodData = data.reduce(ROOT.RooFit.CutRange("good"))
+goodData = data.reduce(CutRange="good")
 goodData.table(tagCat).Print("v")

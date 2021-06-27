@@ -29,9 +29,11 @@ welcome!
 
 class RText : public RDrawable {
 
-   std::string fText;                 ///< text to display
-   RPadPos fPos;                      ///< position
-   RAttrText fAttrText{this, "text"}; ///<! text attributes
+   std::string fText;                                  ///< text to display
+   RPadPos fPos;                                       ///< position
+   RAttrText fAttrText{this, "text"};                  ///<! text attributes
+   RAttrValue<bool> fOnFrame{this, "onframe", false};  ///<! is drawn on the frame or not
+   RAttrValue<bool> fClipping{this, "clipping", false}; ///<! is clipping on when drawn on the frame
 
 public:
    RText() : RDrawable("text") {}
@@ -44,27 +46,20 @@ public:
       fPos = p;
    }
 
-   RText &SetText(const std::string &t)
-   {
-      fText = t;
-      return *this;
-   }
+   RText &SetText(const std::string &t) { fText = t; return *this; }
    const std::string &GetText() const { return fText; }
 
-   RText &SetPos(const RPadPos &p)
-   {
-      fPos = p;
-      return *this;
-   }
+   RText &SetPos(const RPadPos &p) { fPos = p; return *this; }
    const RPadPos &GetPos() const { return fPos; }
 
-   const RAttrText &GetAttrText() const { return fAttrText; }
-   RText &SetAttrText(const RAttrText &attr)
-   {
-      fAttrText = attr;
-      return *this;
-   }
+   const RAttrText &AttrText() const { return fAttrText; }
    RAttrText &AttrText() { return fAttrText; }
+
+   RText &SetOnFrame(bool on = true) { fOnFrame = on; return *this; }
+   bool GetOnFrame() const { return fOnFrame; }
+
+   RText &SetClipping(bool on = true) { fClipping = on; return *this; }
+   bool GetClipping() const { return fClipping; }
 };
 
 } // namespace Experimental

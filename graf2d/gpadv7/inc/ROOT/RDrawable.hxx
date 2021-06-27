@@ -109,6 +109,7 @@ public:
 class RDrawable {
 
 friend class RPadBase; // to access Display method and IsFrameRequired
+friend class RCanvas; // to access SetDrawableVersion
 friend class RAttrBase;
 friend class RStyle;
 friend class RLegend; // to access CollectShared method
@@ -188,6 +189,8 @@ protected:
    bool MatchSelector(const std::string &selector) const;
 
    virtual std::unique_ptr<RDisplayItem> Display(const RDisplayContext &);
+
+   void SetCssType(const std::string &csstype) { fCssType = csstype; }
 
    virtual void OnDisplayItemDestroyed(RDisplayItem *) const {}
 

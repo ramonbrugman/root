@@ -1,7 +1,15 @@
 import unittest
+from array import array
 
 import ROOT
-from DistRDF import Node
+from DistRDF.HeadNode import get_headnode, EmptySourceHeadNode
+
+
+def create_dummy_headnode(*args):
+    """Create dummy head node instance needed in the test"""
+    # Pass None as `npartitions`. The tests will modify this member
+    # according to needs
+    return get_headnode(None, *args)
 
 
 class DataFrameConstructorTests(unittest.TestCase):
@@ -11,15 +19,29 @@ class DataFrameConstructorTests(unittest.TestCase):
         """Constructor with incorrect arguments"""
         with self.assertRaises(TypeError):
             # Incorrect first argument in 2-argument case
-            Node.HeadNode(10, "file.root")
+            create_dummy_headnode(10, "file.root")
 
         with self.assertRaises(TypeError):
             # Incorrect third argument in 3-argument case
-            Node.HeadNode("treename", "file.root", "column1")
+            create_dummy_headnode("treename", "file.root", "column1")
 
         with self.assertRaises(TypeError):
             # No argument case
-            Node.HeadNode()
+            create_dummy_headnode()
+
+    def test_inmemory_tree(self):
+        """Constructor with an in-memory-only tree is not supported"""
+        tree = ROOT.TTree("tree", "Tree in memory")
+        x = array("i", [0])
+        tree.Branch("x", x, "x/I")
+        for i in range(100):
+            x[0] = i
+            tree.Fill()
+
+        headnode = create_dummy_headnode(tree)
+        with self.assertRaises(RuntimeError):
+            # Trees with no associated files are not supported
+            headnode.get_inputfiles()
 
     def assertArgs(self, args_list1, args_list2):
         """
@@ -40,9 +62,10 @@ class DataFrameConstructorTests(unittest.TestCase):
 
     def test_integer_arg(self):
         """Constructor with number of entries"""
-        hn = Node.HeadNode(10)
+        hn = create_dummy_headnode(10)
 
-        self.assertListEqual(hn.args, [10])
+        self.assertEqual(hn.nentries, 10)
+        self.assertIsInstance(hn, EmptySourceHeadNode)
 
     def test_two_args(self):
         """Constructor with list of input files"""
@@ -54,13 +77,13 @@ class DataFrameConstructorTests(unittest.TestCase):
             reqd_vec.push_back(elem)
 
         # RDataFrame constructor with 2nd argument as string
-        hn_1 = Node.HeadNode("treename", "file.root")
+        hn_1 = create_dummy_headnode("treename", "file.root")
 
         # RDataFrame constructor with 2nd argument as Python list
-        hn_2 = Node.HeadNode("treename", rdf_2_files)
+        hn_2 = create_dummy_headnode("treename", rdf_2_files)
 
         # RDataFrame constructor with 2nd argument as ROOT CPP Vector
-        hn_3 = Node.HeadNode("treename", reqd_vec)
+        hn_3 = create_dummy_headnode("treename", reqd_vec)
 
         self.assertArgs(hn_1.args, ["treename", "file.root"])
         self.assertArgs(hn_2.args, ["treename", rdf_2_files])
@@ -76,10 +99,10 @@ class DataFrameConstructorTests(unittest.TestCase):
             reqd_vec.push_back(elem)
 
         # RDataFrame constructor with 3rd argument as Python list
-        hn_1 = Node.HeadNode("treename", "file.root", rdf_branches)
+        hn_1 = create_dummy_headnode("treename", "file.root", rdf_branches)
 
         # RDataFrame constructor with 3rd argument as ROOT CPP Vector
-        hn_2 = Node.HeadNode("treename", "file.root", reqd_vec)
+        hn_2 = create_dummy_headnode("treename", "file.root", reqd_vec)
 
         self.assertArgs(hn_1.args, ["treename", "file.root", rdf_branches])
         self.assertArgs(hn_2.args, ["treename", "file.root", reqd_vec])
@@ -101,19 +124,19 @@ class DataFrameConstructorTests(unittest.TestCase):
 
         # RDataFrame constructor with 2nd argument as Python List
         # and 3rd argument as Python List
-        hn_1 = Node.HeadNode("treename", rdf_files, rdf_branches)
+        hn_1 = create_dummy_headnode("treename", rdf_files, rdf_branches)
 
         # RDataFrame constructor with 2nd argument as Python List
         # and 3rd argument as ROOT CPP Vector
-        hn_2 = Node.HeadNode("treename", rdf_files, reqd_branches_vec)
+        hn_2 = create_dummy_headnode("treename", rdf_files, reqd_branches_vec)
 
         # RDataFrame constructor with 2nd argument as ROOT CPP Vector
         # and 3rd argument as Python List
-        hn_3 = Node.HeadNode("treename", reqd_files_vec, rdf_branches)
+        hn_3 = create_dummy_headnode("treename", reqd_files_vec, rdf_branches)
 
         # RDataFrame constructor with 2nd and 3rd arguments as ROOT
         # CPP Vectors
-        hn_4 = Node.HeadNode("treename", reqd_files_vec, reqd_branches_vec)
+        hn_4 = create_dummy_headnode("treename", reqd_files_vec, reqd_branches_vec)
 
         self.assertArgs(hn_1.args, ["treename", rdf_files, rdf_branches])
         self.assertArgs(hn_2.args, ["treename", rdf_files, reqd_branches_vec])
@@ -130,16 +153,6 @@ class NumEntriesTest(unittest.TestCase):
         tdf = ROOT.ROOT.RDataFrame(size)
         tdf.Define("b1", "(double) tdfentry_").Snapshot("tree", "data.root")
 
-    def test_num_entries_single_arg_case(self):
-        """
-        Ensure that the number of entries recorded are correct in the case
-        of a single integer argument to RDataFrame.
-
-        """
-        hn = Node.HeadNode(123)  # Create HeadNoded instance
-
-        self.assertEqual(hn.get_num_entries(), 123)
-
     def test_num_entries_two_args_case(self):
         """
         Ensure that the number of entries recorded are correct in the case
@@ -151,9 +164,9 @@ class NumEntriesTest(unittest.TestCase):
         files_vec.push_back("data.root")
 
         # Create RDataFrame instances
-        hn = Node.HeadNode("tree", "data.root")
-        hn_1 = Node.HeadNode("tree", ["data.root"])
-        hn_2 = Node.HeadNode("tree", files_vec)
+        hn = create_dummy_headnode("tree", "data.root")
+        hn_1 = create_dummy_headnode("tree", ["data.root"])
+        hn_2 = create_dummy_headnode("tree", files_vec)
 
         self.assertEqual(hn.get_num_entries(), 1111)
         self.assertEqual(hn_1.get_num_entries(), 1111)
@@ -172,10 +185,10 @@ class NumEntriesTest(unittest.TestCase):
         branches_vec_2.push_back("b2")
 
         # Create RDataFrame instances
-        hn = Node.HeadNode("tree", "data.root", ["b1"])
-        hn_1 = Node.HeadNode("tree", "data.root", ["b2"])
-        hn_2 = Node.HeadNode("tree", "data.root", branches_vec_1)
-        hn_3 = Node.HeadNode("tree", "data.root", branches_vec_2)
+        hn = create_dummy_headnode("tree", "data.root", ["b1"])
+        hn_1 = create_dummy_headnode("tree", "data.root", ["b2"])
+        hn_2 = create_dummy_headnode("tree", "data.root", branches_vec_1)
+        hn_3 = create_dummy_headnode("tree", "data.root", branches_vec_2)
 
         self.assertEqual(hn.get_num_entries(), 1234)
         self.assertEqual(hn_1.get_num_entries(), 1234)
@@ -196,6 +209,6 @@ class NumEntriesTest(unittest.TestCase):
             v[i] = 1  # Change the vector element to 1
             tree.Fill()  # Fill the tree with that element
 
-        hn = Node.HeadNode(tree)
+        hn = create_dummy_headnode(tree)
 
         self.assertEqual(hn.get_num_entries(), 4)

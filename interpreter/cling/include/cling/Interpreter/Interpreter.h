@@ -46,13 +46,13 @@ namespace clang {
   class NamedDecl;
   class Parser;
   class Preprocessor;
+  class PresumedLoc;
   class QualType;
   class RecordDecl;
   class Sema;
   class SourceLocation;
   class SourceManager;
   class Type;
-  class PresumedLoc;
 }
 
 namespace cling {
@@ -67,13 +67,13 @@ namespace cling {
   class ClangInternalState;
   class CompilationOptions;
   class DynamicLibraryManager;
+  class IncrementalCUDADeviceCompiler;
   class IncrementalExecutor;
   class IncrementalParser;
   class InterpreterCallbacks;
   class LookupHelper;
-  class Value;
   class Transaction;
-  class IncrementalCUDADeviceCompiler;
+  class Value;
 
   ///\brief Class that implements the interpreter-like behavior. It manages the
   /// incremental compilation.
@@ -200,10 +200,6 @@ namespace cling {
     ///\brief Interpreter callbacks.
     ///
     std::unique_ptr<InterpreterCallbacks> m_Callbacks;
-
-    ///\brief Dynamic library manager object.
-    ///
-    std::unique_ptr<DynamicLibraryManager> m_DyLibManager;
 
     ///\brief Information about the last stored states through .storeState
     ///
@@ -442,7 +438,13 @@ namespace cling {
     ///
     ///\param[in] S - stream to dump to or nullptr for default (cling::outs)
     ///
-    void DumpIncludePath(llvm::raw_ostream* S = nullptr);
+    void DumpIncludePath(llvm::raw_ostream* S = nullptr) const;
+
+    ///\brief Prints the current library paths and loaded libraries.
+    ///
+    ///\param[in] S - stream to dump to or nullptr for default (cling::outs)
+    ///
+    void DumpDynamicLibraryInfo(llvm::raw_ostream* S = nullptr) const;
 
     ///\brief Dump various internal data.
     ///
@@ -726,12 +728,8 @@ namespace cling {
     const InterpreterCallbacks* getCallbacks() const {return m_Callbacks.get();}
     InterpreterCallbacks* getCallbacks() { return m_Callbacks.get(); }
 
-    const DynamicLibraryManager* getDynamicLibraryManager() const {
-      return m_DyLibManager.get();
-    }
-    DynamicLibraryManager* getDynamicLibraryManager() {
-      return m_DyLibManager.get();
-    }
+    const DynamicLibraryManager* getDynamicLibraryManager() const;
+    DynamicLibraryManager* getDynamicLibraryManager();
 
     const Transaction* getFirstTransaction() const;
     const Transaction* getLastTransaction() const;

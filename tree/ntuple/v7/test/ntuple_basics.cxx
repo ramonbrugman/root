@@ -212,6 +212,50 @@ TEST(RNTuple, Clusters)
    EXPECT_EQ(24.0, (*rdFourVec)[1]);
 }
 
+TEST(RNTuple, ClusterEntries)
+{
+   FileRaii fileGuard("test_ntuple_cluster_entries.root");
+   auto model = RNTupleModel::Create();
+   auto field = model->MakeField<float>({"pt", "transverse momentum"}, 42.0);
+
+   {
+      RNTupleWriteOptions opt;
+      opt.SetNEntriesPerCluster(5);
+      auto ntuple = RNTupleWriter::Recreate(
+         std::move(model), "ntuple", fileGuard.GetPath(), opt
+      );
+      for (int i = 0; i < 100; i++) {
+         ntuple->Fill();
+      }
+   }
+
+   auto ntuple = RNTupleReader::Open("ntuple", fileGuard.GetPath());
+   // 100 entries / 5 entries per cluster
+   EXPECT_EQ(20, ntuple->GetDescriptor().GetNClusters());
+}
+
+TEST(RNTuple, ElementsPerPage)
+{
+   FileRaii fileGuard("test_ntuple_elements_per_page.root");
+   auto model = RNTupleModel::Create();
+   auto field = model->MakeField<float>({"pt", "transverse momentum"}, 42.0);
+
+   {
+      RNTupleWriteOptions opt;
+      opt.SetNElementsPerPage(5);
+      auto ntuple = RNTupleWriter::Recreate(
+         std::move(model), "ntuple", fileGuard.GetPath(), opt
+      );
+      for (int i = 0; i < 100; i++) {
+         ntuple->Fill();
+      }
+   }
+
+   auto ntuple = RNTupleReader::Open("ntuple", fileGuard.GetPath());
+   const auto &col0_pages = ntuple->GetDescriptor().GetClusterDescriptor(0).GetPageRange(0);
+   // 100 column elements / 5 elements per page
+   EXPECT_EQ(20, col0_pages.fPageInfos.size());
+}
 
 TEST(RNTupleModel, EnforceValidFieldNames)
 {
@@ -313,4 +357,116 @@ TEST(RNTupleModel, CollectionFieldDescriptions)
    auto ntuple = RNTupleReader::Open("ntuple", fileGuard.GetPath());
    const auto& muon_desc = *ntuple->GetDescriptor().GetTopLevelFields().begin();
    EXPECT_EQ(std::string("muons after basic selection"), muon_desc.GetFieldDescription());
+}
+
+TEST(RNTuple, EmptyString)
+{
+   // empty storage string
+   try {
+      auto model = RNTupleModel::Create();
+      auto ntuple = RNTupleWriter::Recreate(std::move(model), "myNTuple", "");
+      FAIL() << "empty writer storage location should throw";
+   } catch (const RException& err) {
+      EXPECT_THAT(err.what(), testing::HasSubstr("empty storage location"));
+   }
+   try {
+      auto ntuple = RNTupleReader::Open("myNTuple", "");
+      FAIL() << "empty reader storage location should throw";
+   } catch (const RException& err) {
+      EXPECT_THAT(err.what(), testing::HasSubstr("empty storage location"));
+   }
+
+   // empty RNTuple name
+   try {
+      auto model = RNTupleModel::Create();
+      auto ntuple = RNTupleWriter::Recreate(std::move(model), "", "file.root");
+      FAIL() << "empty RNTuple name should throw";
+   } catch (const RException& err) {
+      EXPECT_THAT(err.what(), testing::HasSubstr("empty RNTuple name"));
+   }
+   try {
+      auto ntuple = RNTupleReader::Open("", "file.root");
+      FAIL() << "empty RNTuple name should throw";
+   } catch (const RException& err) {
+      EXPECT_THAT(err.what(), testing::HasSubstr("empty RNTuple name"));
+   }
+}
+
+TEST(RNTuple, NullSafety)
+{
+   // RNTupleModel
+   auto model = RNTupleModel::Create();
+   try {
+      auto bad = model->MakeCollection("bad", nullptr);
+      FAIL() << "null submodels should throw";
+   } catch (const RException& err) {
+      EXPECT_THAT(err.what(), testing::HasSubstr("null collectionModel"));
+   }
+   try {
+      model->AddField(nullptr);
+      FAIL() << "null fields should throw";
+   } catch (const RException& err) {
+      EXPECT_THAT(err.what(), testing::HasSubstr("null field"));
+   }
+   try {
+      model->AddField<float>("pt", nullptr);
+      FAIL() << "null fields should throw";
+   } catch (const RException& err) {
+      EXPECT_THAT(err.what(), testing::HasSubstr("null field fromWhere"));
+   }
+
+   // RNTupleReader and RNTupleWriter
+   FileRaii fileGuard("test_ntuple_null_safety.root");
+   try {
+      RNTupleWriter ntuple(nullptr,
+         std::make_unique<RPageSinkFile>("myNTuple", fileGuard.GetPath(), RNTupleWriteOptions()));
+      FAIL() << "null models should throw";
+   } catch (const RException& err) {
+      EXPECT_THAT(err.what(), testing::HasSubstr("null model"));
+   }
+   try {
+      RNTupleWriter ntuple(std::move(model), nullptr);
+      FAIL() << "null sinks should throw";
+   } catch (const RException& err) {
+      EXPECT_THAT(err.what(), testing::HasSubstr("null sink"));
+   }
+   try {
+      auto ntuple = RNTupleWriter::Recreate(nullptr, "myNtuple", fileGuard.GetPath());
+      FAIL() << "null models should throw";
+   } catch (const RException& err) {
+      EXPECT_THAT(err.what(), testing::HasSubstr("null model"));
+   }
+   try {
+      auto file = std::make_unique<TFile>(fileGuard.GetPath().c_str(), "RECREATE", "", 101);
+      auto ntuple = RNTupleWriter::Append(nullptr, "myNtuple", *file);
+      FAIL() << "null models should throw";
+   } catch (const RException& err) {
+      EXPECT_THAT(err.what(), testing::HasSubstr("null model"));
+   }
+
+   try {
+      auto ntuple = RNTupleReader::Open(nullptr, "myNTuple", fileGuard.GetPath());
+      FAIL() << "null models should throw";
+   } catch (const RException& err) {
+      EXPECT_THAT(err.what(), testing::HasSubstr("null model"));
+   }
+   try {
+      RNTupleReader ntuple(nullptr,
+         std::make_unique<RPageSourceFile>("myNTuple", fileGuard.GetPath(), RNTupleReadOptions()));
+      FAIL() << "null models should throw";
+   } catch (const RException& err) {
+      EXPECT_THAT(err.what(), testing::HasSubstr("null model"));
+   }
+   try {
+      RNTupleReader ntuple(RNTupleModel::Create(), nullptr);
+      FAIL() << "null sources should throw";
+   } catch (const RException& err) {
+      EXPECT_THAT(err.what(), testing::HasSubstr("null source"));
+   }
+   try {
+      RNTupleReader ntuple(nullptr);
+      FAIL() << "null sources should throw";
+   } catch (const RException& err) {
+      EXPECT_THAT(err.what(), testing::HasSubstr("null source"));
+   }
 }

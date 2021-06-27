@@ -19,7 +19,6 @@
 #include "DefinitionShadower.h"
 #include "DeviceKernelInliner.h"
 #include "DynamicLookup.h"
-#include "IncrementalExecutor.h"
 #include "NullDerefProtectionTransformer.h"
 #include "TransactionPool.h"
 #include "ValueExtractionSynthesizer.h"
@@ -697,11 +696,18 @@ namespace cling {
       Parent->removeNestedTransaction(&T);
       T.setParent(0);
     } else {
-      // Remove from the queue
-      assert(&T == m_Transactions.back() && "Out of order transaction removal");
-      m_Transactions.pop_back();
-      if (!m_Transactions.empty())
-        m_Transactions.back()->setNext(0);
+      if (&T == m_Transactions.back()) {
+        // Remove from the queue
+        m_Transactions.pop_back();
+        if (!m_Transactions.empty())
+          m_Transactions.back()->setNext(0);
+      } else {
+        // If T is not the last transaction it must not be a previous
+        // transaction either, but a "disconnected" one, i.e. one that
+        // was not yet committed.
+        assert(std::find(m_Transactions.begin(), m_Transactions.end(), &T)
+              == m_Transactions.end() && "Out of order transaction removal");
+      }
     }
 
     m_TransactionPool->releaseTransaction(&T);

@@ -1,5 +1,5 @@
 /*************************************************************************
- * Copyright (C) 1995-2019, Rene Brun and Fons Rademakers.               *
+ * Copyright (C) 1995-2021, Rene Brun and Fons Rademakers.               *
  * All rights reserved.                                                  *
  *                                                                       *
  * For the licensing terms see $ROOTSYS/LICENSE.                         *
@@ -9,8 +9,7 @@
 #ifndef ROOT7_RAttrFill
 #define ROOT7_RAttrFill
 
-#include <ROOT/RAttrBase.hxx>
-#include <ROOT/RAttrColor.hxx>
+#include <ROOT/RAttrAggregation.hxx>
 #include <ROOT/RAttrValue.hxx>
 
 namespace ROOT {
@@ -24,10 +23,10 @@ namespace Experimental {
 \warning This is part of the ROOT 7 prototype! It will change without notice. It might trigger earthquakes. Feedback is welcome!
 */
 
-class RAttrFill : public RAttrBase {
+class RAttrFill : public RAttrAggregation {
 
-   RAttrColor       fColor{this, "color"};     ///<! fill color
-   RAttrValue<int>  fStyle{this, "style", 1};  ///<! fill style
+   RAttrValue<RColor> fColor{this, "color", RColor::kBlack};  ///<! fill color
+   RAttrValue<int>    fStyle{this, "style", 1};               ///<! fill style
 
    R__ATTR_CLASS(RAttrFill, "fill");
 
@@ -37,8 +36,7 @@ class RAttrFill : public RAttrBase {
 
    ///The fill color
    RAttrFill &SetColor(const RColor &color) { fColor = color; return *this; }
-   RColor GetColor() const { return fColor.GetColor(); }
-   RAttrColor &AttrColor() { return fColor; }
+   RColor GetColor() const { return fColor; }
 
 };
 

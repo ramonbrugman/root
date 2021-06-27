@@ -479,7 +479,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
 
       if (d.check("TRACKS")) res.tracks = true; // only for TGeoManager
       if (d.check("SHOWTOP")) res.showtop = true; // only for TGeoManager
-      if (d.check("NO_SCREEN")) res.no_screen = true; // use kVisOnScreen bits as visibility
+      if (d.check("NO_SCREEN")) res.no_screen = true; // ignore kVisOnScreen bits for visibility
 
       if (d.check("ORTHO_CAMERA_ROTATE")) { res.ortho_camera = true; res.can_rotate = true; }
       if (d.check("ORTHO_CAMERA")) { res.ortho_camera = true; res.can_rotate = false; }
@@ -679,7 +679,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
       menu.add("Reset camera position", () => this.focusCamera());
 
       if (!this._geom_viewer)
-         menu.add("Get camera position", () => alert("Position (as url): &opt=" + this.produceCameraUrl()));
+         menu.add("Get camera position", () => menu.info("Position (as url)", "&opt=" + this.produceCameraUrl()));
 
       if (!this.ctrl.project)
          menu.addchk(this.ctrl.rotate, "Autorotate", () => this.setAutoRotate(!this.ctrl.rotate));
@@ -744,7 +744,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
 
          if (node.vect0 === undefined) {
             node.matrix0 = node.matrix.clone();
-            node.minvert = new THREE.Matrix4().getInverse( node.matrixWorld );
+            node.minvert = new THREE.Matrix4().copy(node.matrixWorld).invert();
 
             let box3 = geo.getBoundingBox(mesh, null, true),
                 signz = mesh._flippedMesh ? -1 : 1;
@@ -3969,10 +3969,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
       this._main_painter = null;
       this._slave_painters = [];
 
-      if (this._renderer) {
-         if (this._renderer.dispose) this._renderer.dispose();
-         if (this._renderer.forceContextLoss) this._renderer.forceContextLoss();
-      }
+      jsrp.cleanupRender3D(this._renderer);
 
       delete this._scene;
       this._scene_width = 0;
@@ -4423,11 +4420,11 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
           _more: true,
           _geoobj: lst,
           _parent: parent,
-      }
+      };
 
       item._get = function(item /*, itemname */) {
          return Promise.resolve(item._geoobj || null);
-      }
+      };
 
       item._expand = function(node, lst) {
          // only childs
@@ -4445,7 +4442,7 @@ JSROOT.define(['d3', 'three', 'geobase', 'painter', 'base3d'], (d3, THREE, geo, 
             geo.createItem(node, lst.arr[n]);
 
          return true;
-      }
+      };
 
       if (!parent._childs) parent._childs = [];
       parent._childs.push(item);
