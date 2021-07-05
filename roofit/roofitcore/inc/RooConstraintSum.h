@@ -19,22 +19,31 @@
 #include "RooAbsReal.h"
 #include "RooListProxy.h"
 #include "RooSetProxy.h"
-#include "TStopwatch.h"
 
 class RooRealVar;
 class RooArgList ;
+class RooWorkspace ;
 
 class RooConstraintSum : public RooAbsReal {
 public:
 
-  RooConstraintSum() ;
+  RooConstraintSum() {}
   RooConstraintSum(const char *name, const char *title, const RooArgSet& constraintSet, const RooArgSet& paramSet) ;
-  virtual ~RooConstraintSum() ;
 
   RooConstraintSum(const RooConstraintSum& other, const char* name = 0);
   virtual TObject* clone(const char* newname) const { return new RooConstraintSum(*this, newname); }
 
   const RooArgList& list() { return _set1 ; }
+
+  static std::unique_ptr<RooAbsReal> createConstraintTerm(
+        std::string const& name,
+        RooAbsPdf const& pdf,
+        RooArgSet const& observables,
+        RooArgSet const* constrainedParameters,
+        RooArgSet const* externalConstraints,
+        RooArgSet const* globalObservables,
+        const char* globalObservablesTag,
+        RooWorkspace * workspace = nullptr);
 
 protected:
 

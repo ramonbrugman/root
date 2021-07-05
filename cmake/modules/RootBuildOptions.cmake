@@ -77,7 +77,7 @@ endfunction()
 #   The default value can be changed as many times as we wish before calling ROOT_APPLY_OPTIONS()
 #--------------------------------------------------------------------------------------------------
 
-ROOT_BUILD_OPTION(alien OFF "Enable support for AliEn (requires libgapiUI from ALICE)")
+ROOT_BUILD_OPTION(alien OFF "Enable support for AliEn (requires libgapiUI from ALICE, deprecated)")
 ROOT_BUILD_OPTION(arrow OFF "Enable support for Apache Arrow")
 ROOT_BUILD_OPTION(asimage ON "Enable support for image processing via libAfterImage")
 ROOT_BUILD_OPTION(asserts OFF "Enable asserts (defaults to ON for CMAKE_BUILD_TYPE=Debug and/or dev=ON)")
@@ -160,7 +160,7 @@ ROOT_BUILD_OPTION(r OFF "Enable support for R bindings (requires R, Rcpp, and RI
 ROOT_BUILD_OPTION(roofit ON "Build the advanced fitting package RooFit, and RooStats for statistical tests. If xml is available, also build HistFactory.")
 ROOT_BUILD_OPTION(webgui ON "Build Web-based UI components of ROOT (requires C++14 standard or higher)")
 ROOT_BUILD_OPTION(root7 ON "Build ROOT 7 components of ROOT (requires C++14 standard or higher)")
-ROOT_BUILD_OPTION(rpath OFF "Link libraries with built-in RPATH (run-time search path)")
+ROOT_BUILD_OPTION(rpath ON "Link libraries with built-in RPATH (run-time search path)")
 ROOT_BUILD_OPTION(runtime_cxxmodules ON "Enable runtime support for C++ modules")
 ROOT_BUILD_OPTION(shadowpw OFF "Enable support for shadow passwords")
 ROOT_BUILD_OPTION(shared ON "Use shared 3rd party libraries if possible")
@@ -307,6 +307,7 @@ if(WIN32)
   set(davix_defvalue OFF)
   set(pyroot_legacy_defvalue OFF)
   set(roottest_defvalue OFF)
+  set(rpath_defvalue OFF)
   set(runtime_cxxmodules_defvalue OFF)
   set(testing_defvalue OFF)
   set(vdt_defvalue OFF)
@@ -408,11 +409,11 @@ foreach(opt afdsmgrd afs bonjour castor chirp geocad glite globus hdfs ios
 endforeach()
 
 #---Deprecated options------------------------------------------------------------------------
-# foreach(opt some-deprecated-op)
-#  if(${opt})
-#    message(DEPRECATION ">>> Option '${opt}' is deprecated and will be removed in the next release of ROOT. Please contact root-dev@cern.ch should you still need it.")
-#  endif()
-#endforeach()
+foreach(opt alien)
+  if(${opt})
+    message(DEPRECATION ">>> Option '${opt}' is deprecated and will be removed in the next release of ROOT. Please contact root-dev@cern.ch should you still need it.")
+  endif()
+endforeach()
 
 #---Replaced options--------------------------------------------------------------------------
 if(python)
@@ -426,26 +427,30 @@ include_regular_expression("^[^.]+$|[.]h$|[.]icc$|[.]hxx$|[.]hpp$")
 include(RootInstallDirs)
 
 #---RPATH options-------------------------------------------------------------------------------
-#  When building, don't use the install RPATH already (but later on when installing)
-set(CMAKE_SKIP_BUILD_RPATH FALSE)         # don't skip the full RPATH for the build tree
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) # use always the build RPATH for the build tree
-set(CMAKE_MACOSX_RPATH TRUE)              # use RPATH for MacOSX
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) # point to directories outside the build tree to the install RPATH
 
-# Check whether to add RPATH to the installation (the build tree always has the RPATH enabled)
+set(CMAKE_SKIP_BUILD_RPATH FALSE)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+
+# add to RPATH any directories outside the project that are in the linker search path
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 if(rpath)
-  set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR} CACHE INTERNAL "") # install LIBDIR
-  set(CMAKE_SKIP_INSTALL_RPATH FALSE)          # don't skip the full RPATH for the install tree
-elseif(APPLE)
-  set(CMAKE_INSTALL_NAME_DIR "@rpath")
-  if(gnuinstall)
-    set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}) # install LIBDIR
+  file(RELATIVE_PATH BINDIR_TO_LIBDIR "${CMAKE_INSTALL_FULL_BINDIR}" "${CMAKE_INSTALL_FULL_LIBDIR}")
+
+  set(CMAKE_SKIP_RPATH FALSE)
+  set(CMAKE_SKIP_INSTALL_RPATH FALSE)
+
+  if(APPLE)
+    set(CMAKE_MACOSX_RPATH TRUE)
+    set(CMAKE_INSTALL_NAME_DIR "@rpath")
+    set(CMAKE_INSTALL_RPATH "@loader_path/${BINDIR_TO_LIBDIR}")
   else()
-    set(CMAKE_INSTALL_RPATH "@loader_path/../lib")    # self relative LIBDIR
+    set(CMAKE_INSTALL_RPATH "$ORIGIN;$ORIGIN/${BINDIR_TO_LIBDIR}")
   endif()
-  set(CMAKE_SKIP_INSTALL_RPATH FALSE)          # don't skip the full RPATH for the install tree
+
+  unset(BINDIR_TO_LIBDIR)
 else()
-  set(CMAKE_SKIP_INSTALL_RPATH TRUE)           # skip the full RPATH for the install tree
+  set(CMAKE_SKIP_INSTALL_RPATH TRUE)
 endif()
 
 #---deal with the DCMAKE_IGNORE_PATH------------------------------------------------------------

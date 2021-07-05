@@ -1,5 +1,5 @@
 /*************************************************************************
- * Copyright (C) 1995-2019, Rene Brun and Fons Rademakers.               *
+ * Copyright (C) 1995-2021, Rene Brun and Fons Rademakers.               *
  * All rights reserved.                                                  *
  *                                                                       *
  * For the licensing terms see $ROOTSYS/LICENSE.                         *
@@ -195,10 +195,10 @@ public:
 
    RLegend(const RPadPos &corner, const RPadExtent &size) : RLegend()
    {
-      SetCornerX(corner.Horiz());
-      SetCornerY(corner.Vert());
-      SetWidth(size.Horiz());
-      SetHeight(size.Vert());
+      cornerX = corner.Horiz();
+      cornerY = corner.Vert();
+      width = size.Horiz();
+      height = size.Vert();
    }
 
    RLegend &SetTitle(const std::string &title) { fTitle = title; return *this; }

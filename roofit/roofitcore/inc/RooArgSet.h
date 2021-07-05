@@ -18,6 +18,7 @@
 
 #include "RooAbsCollection.h"
 #include "RooAbsArg.h"
+#include "UniqueId.h"
 
 class RooArgList ;
 
@@ -73,6 +74,18 @@ public:
     }
   }
 
+  /// Construct a non-owning RooArgSet from a vector of RooAbsArg pointers.
+  /// This constructor is mainly intended for pyROOT. With cppyy, a Python list
+  /// or tuple can be implicitly converted to an std::vector, and by enabling
+  /// implicit construction of a RooArgSet from a std::vector, we indirectly
+  /// enable implicit conversion from a Python list/tuple to RooArgSets.
+  /// \param vec A vector with pointers to the arguments.
+  RooArgSet(std::vector<RooAbsArg*> const& vec) {
+    for(auto const& arg : vec) {
+      add(*arg);
+    }
+  }
+
   RooArgSet(const RooArgSet& other, const char *name="");
   /// Move constructor.
   RooArgSet(RooArgSet && other) : RooAbsCollection(std::move(other)) {}
@@ -121,6 +134,12 @@ public:
     return RooAbsCollection::snapshot(output, deepCopy);
   }
 
+  /// Returns a unique ID that is different for every instantiated RooArgSet.
+  /// This ID can be used to check whether two RooAbsData are the same object,
+  /// which is safer than memory address comparisons that might result in false
+  /// positives when memory is recycled.
+  UniqueId<RooArgSet> const& uniqueId() const { return _uniqueId; }
+
 protected:
   Bool_t checkForDup(const RooAbsArg& arg, Bool_t silent) const ;
   virtual bool canBeAdded(const RooAbsArg& arg, bool silent) const override {
@@ -142,6 +161,7 @@ private:
   //to leak depending if RooArgSets are still alive. This depends on the order of destructions.
   static MemPool* memPool();
 #endif
+  const UniqueId<RooArgSet> _uniqueId; //!
   
   ClassDefOverride(RooArgSet,1) // Set of RooAbsArg objects
 };

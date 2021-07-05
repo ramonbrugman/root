@@ -1,5 +1,5 @@
 /*************************************************************************
- * Copyright (C) 1995-2017, Rene Brun and Fons Rademakers.               *
+ * Copyright (C) 1995-2021, Rene Brun and Fons Rademakers.               *
  * All rights reserved.                                                  *
  *                                                                       *
  * For the licensing terms see $ROOTSYS/LICENSE.                         *
@@ -9,10 +9,11 @@
 #ifndef ROOT7_RText
 #define ROOT7_RText
 
-#include <ROOT/RDrawable.hxx>
+#include <ROOT/ROnFrameDrawable.hxx>
 #include <ROOT/RAttrText.hxx>
 #include <ROOT/RPadPos.hxx>
 
+#include <initializer_list>
 #include <string>
 
 namespace ROOT {
@@ -27,16 +28,15 @@ namespace Experimental {
 welcome!
 */
 
-class RText : public RDrawable {
+class RText : public ROnFrameDrawable {
 
    std::string fText;                                  ///< text to display
    RPadPos fPos;                                       ///< position
-   RAttrText fAttrText{this, "text"};                  ///<! text attributes
-   RAttrValue<bool> fOnFrame{this, "onframe", false};  ///<! is drawn on the frame or not
-   RAttrValue<bool> fClipping{this, "clipping", false}; ///<! is clipping on when drawn on the frame
 
 public:
-   RText() : RDrawable("text") {}
+   RAttrText text{this, "text"};                  ///<! text attributes
+
+   RText() : ROnFrameDrawable("text") {}
 
    RText(const std::string &txt) : RText() { fText = txt; }
 
@@ -51,15 +51,6 @@ public:
 
    RText &SetPos(const RPadPos &p) { fPos = p; return *this; }
    const RPadPos &GetPos() const { return fPos; }
-
-   const RAttrText &AttrText() const { return fAttrText; }
-   RAttrText &AttrText() { return fAttrText; }
-
-   RText &SetOnFrame(bool on = true) { fOnFrame = on; return *this; }
-   bool GetOnFrame() const { return fOnFrame; }
-
-   RText &SetClipping(bool on = true) { fClipping = on; return *this; }
-   bool GetClipping() const { return fClipping; }
 };
 
 } // namespace Experimental

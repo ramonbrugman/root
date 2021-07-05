@@ -2395,18 +2395,16 @@ JSROOT.define(['d3', 'painter', 'gpad'], (d3, jsrp) => {
 
       // case when histogram drawn over other histogram (same option)
       if (!this.isMainPainter() || this.options.Same)
-         return Promise.resolve(true);
+         return Promise.resolve(this);
 
       let histo = this.getHisto(), st = JSROOT.gStyle,
           pp = this.getPadPainter(),
           tpainter = pp ? pp.findPainterFor(null, "title") : null,
-          pt = tpainter ? tpainter.getObject() : null;
+          pt = tpainter ? tpainter.getObject() : null,
+          draw_title = !histo.TestBit(TH1StatusBits.kNoTitle) && (st.fOptTitle > 0);
 
-      if (!pt && pp && pp.findInPrimitives)
-         pt = pp.findInPrimitives("title");
-      if (pt && (pt._typename !== "TPaveText")) pt = null;
-
-      let draw_title = !histo.TestBit(TH1StatusBits.kNoTitle) && (st.fOptTitle > 0);
+      if (!pt && pp && typeof pp.findInPrimitives == "function")
+         pt = pp.findInPrimitives("title", "TPaveText");
 
       // histo.fTitle = "#strike{testing} #overline{Title:} #overline{Title:_{X}} #underline{test}  #underline{test^{X}}";
       // histo.fTitle = "X-Y-#overline{V}_{#Phi}";
@@ -2414,7 +2412,7 @@ JSROOT.define(['d3', 'painter', 'gpad'], (d3, jsrp) => {
       if (pt) {
          pt.Clear();
          if (draw_title) pt.AddText(histo.fTitle);
-         if (tpainter) tpainter.redraw();
+         if (tpainter) return tpainter.redraw().then(() => this);
       } else if (draw_title && !tpainter && histo.fTitle && !this.options.PadTitle) {
          pt = JSROOT.create("TPaveText");
          pt.fName = "title";
@@ -2427,8 +2425,8 @@ JSROOT.define(['d3', 'painter', 'gpad'], (d3, jsrp) => {
          pt.fBorderSize = st.fTitleBorderSize;
 
          pt.AddText(histo.fTitle);
-         return drawPave(this.getDom(), pt, "postitle").then(tpainter => {
-            if (tpainter) tpainter.$secondary = true;
+         return drawPave(this.getDom(), pt, "postitle").then(tp => {
+            if (tp) tp.$secondary = true;
             return this;
          });
       }
@@ -2475,7 +2473,7 @@ JSROOT.define(['d3', 'painter', 'gpad'], (d3, jsrp) => {
    THistPainter.prototype.findStat = function() {
       if (this.options.PadStats) {
          let pp = this.getPadPainter(),
-             p = pp ? pp.findPainterFor(null,"stats", "TPaveStats") : null;
+             p = pp ? pp.findPainterFor(null, "stats", "TPaveStats") : null;
          return p ? p.getObject() : null;
       }
 
@@ -2652,7 +2650,7 @@ JSROOT.define(['d3', 'painter', 'gpad'], (d3, jsrp) => {
 
       // no need to do something if painter for object was already done
       // object will be redraw automatically
-      if ((func_painter === null) && func)
+      if (!func_painter && func)
          do_draw = this.needDrawFunc(histo, func);
 
       if (!do_draw)
@@ -6619,9 +6617,7 @@ JSROOT.define(['d3', 'painter', 'gpad'], (d3, jsrp) => {
             // redraw palette till the end when contours are available
             return pp.drawPave();
          });
-      }).then(() => {
-         return this.drawHistTitle();
-      }).then(() => {
+      }).then(() => this.drawHistTitle()).then(() => {
 
          this.updateStatWebCanvas();
 

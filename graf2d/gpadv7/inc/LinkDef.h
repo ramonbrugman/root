@@ -18,6 +18,7 @@
 #pragma link C++ class ROOT::Experimental::RStyle::Block_t+;
 
 #pragma link C++ class ROOT::Experimental::RDrawable+;
+#pragma link C++ class ROOT::Experimental::ROnFrameDrawable+;
 #pragma link C++ class ROOT::Experimental::RDisplayItem+;
 #pragma link C++ class ROOT::Experimental::RDrawableDisplayItem+;
 #pragma link C++ class ROOT::Experimental::RIndirectDisplayItem+;
@@ -81,16 +82,18 @@
 
 #pragma link C++ class ROOT::Experimental::RAttrFill-;
 #pragma link C++ class ROOT::Experimental::RAttrLine-;
+#pragma link C++ class ROOT::Experimental::RAttrLineEnding-;
 #pragma link C++ class ROOT::Experimental::RAttrBorder-;
 #pragma link C++ class ROOT::Experimental::RAttrMarker-;
+#pragma link C++ class ROOT::Experimental::RAttrFont-;
 #pragma link C++ class ROOT::Experimental::RAttrText-;
+#pragma link C++ class ROOT::Experimental::RAttrAxisLabels-;
+#pragma link C++ class ROOT::Experimental::RAttrAxisTitle-;
+#pragma link C++ class ROOT::Experimental::RAttrAxisTicks-;
 #pragma link C++ class ROOT::Experimental::RAttrAxis-;
 #pragma link C++ class ROOT::Experimental::RAttrMargins-;
 
-#pragma link C++ class ROOT::Experimental::RAxisDrawableBase+;
 #pragma link C++ class ROOT::Experimental::RAxisDrawable+;
-#pragma link C++ class ROOT::Experimental::RAxisLabelsDrawable+;
-
 #pragma link C++ class ROOT::Experimental::RPadBase+;
 #pragma link C++ class ROOT::Experimental::RPad+;
 #pragma link C++ class ROOT::Experimental::RCanvas+;

@@ -9,24 +9,18 @@
 using namespace ROOT::Experimental;
 
 class CustomAttrs : public RAttrAggregation {
-   RAttrLine    fAttrLine{this, "line"};    ///<! line attributes
-   RAttrFill    fAttrFill{this, "fill"};    ///<! fill attributes
-   RAttrText    fAttrText{this, "text"};    ///<! text attributes
 
 protected:
    // required here while dictionary for CustomAttrs not created
-   RAttrMap CollectDefaults() const override { return RAttrMap().AddDefaults(fAttrLine).AddDefaults(fAttrFill).AddDefaults(fAttrText); }
+   RAttrMap CollectDefaults() const override { return RAttrMap().AddDefaults(line).AddDefaults(fill).AddDefaults(text); }
 
    R__ATTR_CLASS(CustomAttrs, "custom");
 
-   const RAttrLine &AttrLine() const { return fAttrLine; }
-   RAttrLine &AttrLine() { return fAttrLine; }
+public:
 
-   const RAttrFill &AttrFill() const { return fAttrFill; }
-   RAttrFill &AttrFill() { return fAttrFill; }
-
-   const RAttrText &AttrText() const { return fAttrText; }
-   RAttrText &AttrText() { return fAttrText; }
+   RAttrLine    line{this, "line"};    ///<! line attributes
+   RAttrFill    fill{this, "fill"};    ///<! fill attributes
+   RAttrText    text{this, "text"};    ///<! text attributes
 
    double GetDirect(const std::string &name)
    {
@@ -37,40 +31,31 @@ protected:
 };
 
 
-TEST(RAttrTest, AttribStrings) {
+TEST(RAttrTest, AttribDirect) {
    CustomAttrs attrs;
 
-   attrs.AttrLine().SetWidth(42.);
-   attrs.AttrText().SetSize(1.7);
+   attrs.line.width = 42.;
+   attrs.text.size = 1.7;
 
    {
       auto val = attrs.GetDirect("line_width");
-      EXPECT_FLOAT_EQ(val, 42.f);
+      EXPECT_DOUBLE_EQ(val, 42.);
    }
 
    {
       auto val = attrs.GetDirect("text_size");
-      EXPECT_FLOAT_EQ(val, 1.7f);
+      EXPECT_DOUBLE_EQ(val, 1.7);
    }
 }
 
 TEST(RAttrTest, AttribVals) {
    CustomAttrs attrs;
 
-   attrs.AttrText().SetColor(RColor::kBlue);
-   auto &line = attrs.AttrLine();
-   line.SetWidth(42.);
+   attrs.text.color = RColor::kBlue;
+   attrs.line.width = 42.f;
 
-   {
-      // Value was set on this attr, not coming from style:
-      EXPECT_FLOAT_EQ(attrs.AttrLine().GetWidth(), 42.f);
-      EXPECT_FLOAT_EQ(line.GetWidth(), 42.f);
-   }
-
-   {
-      // Value was set on this attr, not coming from style:
-      EXPECT_EQ(attrs.AttrText().GetColor(), RColor::kBlue);
-   }
+   EXPECT_DOUBLE_EQ(attrs.line.width, 42.f);
+   EXPECT_EQ(attrs.text.color, RColor::kBlue);
 
 }
 
@@ -84,12 +69,12 @@ TEST(RAttrTest, NullAttribCompare) {
 TEST(RAttrTest, AttribEqual) {
    CustomAttrs attrs;
 
-   auto &al1 = attrs.AttrLine();
-   auto &al2 = attrs.AttrLine();
+   auto &al1 = attrs.line;
+   auto &al2 = attrs.line;
    EXPECT_EQ(al1, al2);
    EXPECT_EQ(al2, al1);
 
-   al1.SetColor(RColor::kRed);
+   al1.color = RColor::kRed;
 
    EXPECT_EQ(al1, al2);
    EXPECT_EQ(al2, al1);
@@ -102,13 +87,13 @@ TEST(RAttrTest, AttribDiffer) {
 
    // RLogScopedVerbosity debugThis(GPadLog(), ELogLevel::kDebug);
 
-   attrs1.AttrLine().SetWidth(7.);
+   attrs1.line.width = 7.f;
    EXPECT_NE(attrs1, attrs2);
    EXPECT_NE(attrs2, attrs1);
    EXPECT_EQ(attrs2, attrs3);
    EXPECT_EQ(attrs3, attrs2);
 
-   attrs2.AttrLine().SetColor(RColor::kRed);
+   attrs2.line.color = RColor::kRed;
    EXPECT_NE(attrs1, attrs2);
    EXPECT_NE(attrs2, attrs1);
    EXPECT_NE(attrs1, attrs3);
@@ -123,13 +108,13 @@ TEST(RAttrTest, AttribAssign) {
    CustomAttrs attrs2;
 
    // deep copy - independent from origin
-   auto attrLine1 = attrs1.AttrLine();
-   auto attrLine2 = attrs2.AttrLine();
+   auto attrLine1 = attrs1.line;
+   auto attrLine2 = attrs2.line;
 
    EXPECT_EQ(attrLine2, attrLine1);
    EXPECT_EQ(attrLine1, attrLine2);
 
-   attrLine1.SetWidth(42.);
+   attrLine1.width = 42.;
    EXPECT_NE(attrLine2, attrLine1);
 
    attrLine2 = attrLine1;
@@ -137,22 +122,22 @@ TEST(RAttrTest, AttribAssign) {
    EXPECT_EQ(attrLine1, attrLine2);
 
    // But original attributes now differ
-   EXPECT_NE(attrs1.AttrLine(), attrLine1);
-   EXPECT_NE(attrs2.AttrLine(), attrLine2);
+   EXPECT_NE(attrs1.line, attrLine1);
+   EXPECT_NE(attrs2.line, attrLine2);
 
-   EXPECT_FLOAT_EQ(attrLine1.GetWidth(), 42.);
-   EXPECT_FLOAT_EQ(attrLine2.GetWidth(), 42.);
+   EXPECT_DOUBLE_EQ(attrLine1.width, 42.);
+   EXPECT_DOUBLE_EQ(attrLine2.width, 42.);
    // default width return 1
-   EXPECT_FLOAT_EQ(attrs1.AttrLine().GetWidth(), 1.);
-   EXPECT_FLOAT_EQ(attrs2.AttrLine().GetWidth(), 1.);
+   EXPECT_DOUBLE_EQ(attrs1.line.width, 1.);
+   EXPECT_DOUBLE_EQ(attrs2.line.width, 1.);
 
    // Are the two attributes disconnected?
-   attrLine2.SetWidth(3.);
-   EXPECT_EQ(attrs1.AttrLine(), attrs2.AttrLine());
-   EXPECT_FLOAT_EQ(attrLine1.GetWidth(), 42.);
-   EXPECT_FLOAT_EQ(attrLine2.GetWidth(), 3.);
-   EXPECT_FLOAT_EQ(attrs1.AttrLine().GetWidth(), 1.);
-   EXPECT_FLOAT_EQ(attrs2.AttrLine().GetWidth(), 1.);
+   attrLine2.width = 3.;
+   EXPECT_EQ(attrs1.line, attrs2.line);
+   EXPECT_DOUBLE_EQ(attrLine1.width, 42.);
+   EXPECT_DOUBLE_EQ(attrLine2.width, 3.);
+   EXPECT_DOUBLE_EQ(attrs1.line.width, 1.);
+   EXPECT_DOUBLE_EQ(attrs2.line.width, 1.);
 }
 
 TEST(RAttrTest, AttribValue) {

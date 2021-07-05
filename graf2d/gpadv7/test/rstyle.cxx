@@ -16,26 +16,14 @@
 using namespace ROOT::Experimental;
 
 class CustomDrawable : public RDrawable {
-   RAttrLine  fAttrLine{this, "line"};         ///<! line attributes
-   RAttrFill  fAttrFill{this, "fill"};         ///<! fill attributes
-   RAttrText  fAttrText{this, "text"};         ///<! text attributes
-   RAttrMargins fAttrMargins{this, "margins"}; ///<! margin attributes
 
 public:
+   RAttrLine  line{this, "line"};         ///<! line attributes
+   RAttrFill  fill{this, "fill"};         ///<! fill attributes
+   RAttrText  text{this, "text"};         ///<! text attributes
+   RAttrMargins margins{this, "margins"}; ///<! margins attributes
+
    CustomDrawable() : RDrawable("custom") {}
-
-   const RAttrLine &AttrLine() const { return fAttrLine; }
-   RAttrLine &AttrLine() { return fAttrLine; }
-
-   const RAttrFill &AttrFill() const { return fAttrFill; }
-   RAttrFill &AttrFill() { return fAttrFill; }
-
-   const RAttrText &AttrText() const { return fAttrText; }
-   RAttrText &AttrText() { return fAttrText; }
-
-   const RAttrMargins &AttrMargins() const { return fAttrMargins; }
-   RAttrMargins &AttrMargins() { return fAttrMargins; }
-
 };
 
 
@@ -55,11 +43,11 @@ TEST(RStyleTest, CreateStyle)
 
    drawable.UseStyle(style);
 
-   EXPECT_DOUBLE_EQ(drawable.AttrLine().GetWidth(), 2.);
+   EXPECT_DOUBLE_EQ(drawable.line.width, 2.f);
 
-   EXPECT_EQ(drawable.AttrFill().GetStyle(), 5);
+   EXPECT_EQ(drawable.fill.style, 5);
 
-   EXPECT_DOUBLE_EQ(drawable.AttrText().GetSize(), 3.);
+   EXPECT_DOUBLE_EQ(drawable.text.size, 3.);
 }
 
 
@@ -77,30 +65,54 @@ TEST(RStyleTest, CreateCss)
 
    drawable.UseStyle(style);
 
-   EXPECT_DOUBLE_EQ(drawable.AttrLine().GetWidth(), 2.);
+   EXPECT_DOUBLE_EQ(drawable.line.width, 2.f);
 
-   EXPECT_EQ(drawable.AttrLine().GetColor(), RColor::kRed);
+   EXPECT_EQ(drawable.line.color, RColor::kRed);
 
-   EXPECT_EQ(drawable.AttrFill().GetStyle(), 5);
+   EXPECT_EQ(drawable.fill.style, 5);
 
-   EXPECT_DOUBLE_EQ(drawable.AttrText().GetSize(), 3.);
+   EXPECT_DOUBLE_EQ(drawable.text.size, 3.);
+}
+
+TEST(RStyleTest, CaseInsensitive)
+{
+   auto style = RStyle::Parse(" custom { line_Width: 2; Line_coloR: red; }"
+                              " #customID { fill_style: 5; }"
+                              " .custom_Cclass { text_size: 3; }");
+
+   ASSERT_NE(style, nullptr);
+
+   CustomDrawable drawable;
+   drawable.SetId("customid");
+   drawable.SetCssClass("custom_class");
+
+   drawable.UseStyle(style);
+
+   // attribute names should be case insensetive
+   EXPECT_DOUBLE_EQ(drawable.line.width, 2.f);
+
+   EXPECT_EQ(drawable.line.color, RColor::kRed);
+
+   // but id should have exact match
+   EXPECT_NE(drawable.fill.style, 5);
+
+   // and class name should have exact match
+   EXPECT_NE(drawable.text.size, 3.);
 }
 
 
 TEST(RStyleTest, TestMargins)
 {
-   auto style = RStyle::Parse(" custom { margins_all: 0.3; margins_left: 0.2; margins_right: 0.4; }");
+   auto style = RStyle::Parse(" custom { margins_top: 0.3; margins_left: 0.2; margins_right: 0.4; }");
 
    ASSERT_NE(style, nullptr);
 
    CustomDrawable drawable;
    drawable.UseStyle(style);
 
-   auto &margins = drawable.AttrMargins();
-
-   EXPECT_EQ(margins.GetLeft(), 0.2);
-   EXPECT_EQ(margins.GetRight(), 0.4_normal);
-   EXPECT_EQ(margins.GetAll(), 0.3_normal);
+   EXPECT_EQ(drawable.margins.left, 0.2);
+   EXPECT_EQ(drawable.margins.right, 0.4_normal);
+   EXPECT_EQ(drawable.margins.top, 0.3_normal);
 }
 
 
@@ -116,10 +128,10 @@ TEST(RStyleTest, LostStyle)
       // here weak_ptr will be set, therefore after style is deleted drawable will loose it
       drawable.UseStyle(style);
 
-      EXPECT_DOUBLE_EQ(drawable.AttrLine().GetWidth(), 2.);
+      EXPECT_DOUBLE_EQ(drawable.line.width, 2.f);
    }
 
    // here style no longer exists
-   EXPECT_DOUBLE_EQ(drawable.AttrLine().GetWidth(), 1.);
+   EXPECT_DOUBLE_EQ(drawable.line.width, 1.f);
 }
 
